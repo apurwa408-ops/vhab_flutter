@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V-Hab · Hand Rehab Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #FFF7ED;
+    --bg-header: #FFFFFF;
+    --surface: #FFFFFF;
+    --surface-2: #FFF1DE;
+    --surface-3: #FFE8CC;
+    --border: #FBDEB8;
+    --text: #2E2A3D;
+    --text-muted: #8B8398;
+    --green: #14B87F;
+    --green-soft: rgba(20,184,127,0.14);
+    --amber: #FFB020;
+    --amber-soft: rgba(255,176,32,0.16);
+    --orange: #FF7A45;
+    --orange-soft: rgba(255,122,69,0.16);
+    --red: #FF5D73;
+    --red-soft: rgba(255,93,115,0.14);
+    --blue: #3DA9FC;
+    --blue-soft: rgba(61,169,252,0.14);
+    --purple: #9B7BFF;
+    --purple-soft: rgba(155,123,255,0.14);
+    --pink: #FF6FA5;
+    --yellow: #FFD93D;
+    --shadow: 0 6px 18px rgba(255,158,68,0.14);
+    --shadow-sm: 0 3px 10px rgba(255,158,68,0.10);
+    --radius: 18px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    min-height:100vh;
+  }
+  h1,h2,h3{ font-family:'Baloo 2', 'IBM Plex Sans', sans-serif; margin:0; }
+  button{ font-family:'IBM Plex Sans', sans-serif; cursor:pointer; border:none; }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  .app{ max-width: 1080px; margin:0 auto; padding: 22px 18px 80px; }
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+
+  /* ---------- background flourish ---------- */
+  body{
+    background:
+      radial-gradient(circle at 8% 8%, rgba(255,217,61,0.25), transparent 40%),
+      radial-gradient(circle at 95% 12%, rgba(61,169,252,0.16), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(155,123,255,0.14), transparent 45%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+
+  /* ---------- shared bits ---------- */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding: 12px 22px; border-radius: 999px;
+    font-size:14px; font-weight:600; letter-spacing:0.01em;
+    transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn-primary{ background: linear-gradient(135deg, var(--green), #0FD69A); color:#fff; box-shadow: var(--shadow-sm); }
+  .btn-primary:hover{ transform: translateY(-1px); filter:brightness(1.04); }
+  .btn-primary:disabled{ opacity:0.45; cursor:default; transform:none; filter:none; }
+  .btn-bright{ background: linear-gradient(135deg, var(--orange), var(--yellow)); color:#3A2200; box-shadow: var(--shadow-sm); }
+  .btn-bright:hover{ transform: translateY(-1px); filter:brightness(1.03); }
+  .btn-ghost{ background: var(--surface); color: var(--text); border:1.5px solid var(--border); }
+  .btn-ghost:hover{ background: var(--surface-2); }
+  .btn-sm{ padding:9px 16px; font-size:13px; }
+  .btn-block{ width:100%; }
+  .link-back{
+    background:none; color: var(--text-muted); font-size:13px; font-weight:600;
+    padding:6px 0; margin-bottom:14px; display:inline-flex; align-items:center; gap:6px;
+  }
+  .link-back:hover{ color: var(--text); }
+
+  .card{
+    background: var(--surface); border:1.5px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ---------- top navbar ---------- */
+  .navbar{
+    display:none;
+    position:sticky; top:0; z-index:50;
+    background: rgba(255,255,255,0.88); backdrop-filter: blur(8px);
+    border-bottom: 1.5px solid var(--border);
+  }
+  .navbar.show{ display:block; }
+  .navbar-inner{
+    max-width:1080px; margin:0 auto; padding:12px 18px;
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .brand{ display:flex; align-items:center; gap:9px; }
+  .brand-mark{
+    width:34px; height:34px; border-radius:10px;
+    background: linear-gradient(135deg, var(--orange), var(--yellow));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:16px; color:#3A2200;
+    box-shadow: var(--shadow-sm);
+  }
+  .brand-name{ font-family:'Baloo 2', sans-serif; font-size:19px; font-weight:700; letter-spacing:0.01em; color: var(--text); }
+  .nav-links{ display:flex; gap:6px; background: var(--surface-2); padding:5px; border-radius:999px; }
+  .nav-link{
+    display:flex; align-items:center; gap:7px; padding:9px 15px; border-radius:999px;
+    background:transparent; color: var(--text-muted); font-size:13px; font-weight:600;
+  }
+  .nav-link .ic{ font-size:15px; }
+  .nav-link:hover{ color: var(--text); }
+  .nav-link.active{ background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+  .user-chip{
+    display:flex; align-items:center; gap:9px;
+    background: var(--surface-2); border:1.5px solid var(--border);
+    padding:5px 12px 5px 5px; border-radius: 999px;
+  }
+  .avatar-mini{
+    width:28px; height:28px; border-radius:50%;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700;
+  }
+  .user-chip .pname{ font-size:13px; font-weight:600; }
+  .user-chip button{ background:none; color: var(--text-muted); font-size:11px; font-weight:600; padding:3px 7px; border-radius:6px; }
+  .user-chip button:hover{ color: var(--red); background: var(--red-soft); }
+
+  /* ---------- LOGIN ---------- */
+  #screen-login{ min-height: 92vh; display:flex; align-items:center; justify-content:center; }
+  .login-wrap{ max-width: 400px; width:100%; text-align:center; padding: 18px; }
+  .login-mark{
+    width:64px; height:64px; border-radius:18px; margin:0 auto 16px;
+    background: linear-gradient(135deg, var(--orange), var(--yellow));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:28px; color:#3A2200;
+    box-shadow: var(--shadow);
+  }
+  .login-wrap h1{ font-size:26px; margin-bottom:6px; }
+  .login-wrap > p{ color:var(--text-muted); font-size:14px; margin-bottom:26px; line-height:1.6; }
+  .login-card{ text-align:left; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:12px; font-weight:600; color: var(--text-muted); margin-bottom:6px; }
+  .field input{
+    width:100%; padding:13px 14px; border-radius:12px;
+    background: var(--surface-2); border:1.5px solid var(--border);
+    color: var(--text); font-family:'IBM Plex Sans', sans-serif; font-size:15px;
+  }
+  .field input:focus{ outline:none; border-color: var(--green); background: var(--surface); }
+  .login-error{
+    display:none; background: var(--red-soft); color:#C13A50; border:1.5px solid rgba(255,93,115,0.3);
+    border-radius:10px; padding:10px 12px; font-size:13px; margin-bottom:14px; text-align:left;
+  }
+  .login-error.show{ display:block; }
+  .login-hint{
+    margin-top:18px; font-size:12px; color: var(--text-muted); line-height:1.7;
+    background: var(--surface-2); border:1.5px dashed var(--border); border-radius:12px; padding:12px 14px;
+  }
+  .login-hint b{ color: var(--text); }
+
+  /* ---------- HOME ---------- */
+  .hero{
+    background: linear-gradient(135deg, var(--purple), var(--pink) 60%, var(--orange));
+    border-radius: 22px; padding: 28px 26px; color:#fff; margin-bottom:22px;
+    box-shadow: var(--shadow); position:relative; overflow:hidden;
+  }
+  .hero::after{
+    content:''; position:absolute; right:-40px; top:-40px; width:180px; height:180px;
+    background: rgba(255,255,255,0.14); border-radius:50%;
+  }
+  .hero h1{ font-size:26px; margin-bottom:6px; position:relative; }
+  .hero p{ opacity:0.92; font-size:14px; max-width:52ch; line-height:1.6; margin:0 0 18px; position:relative; }
+  .hero-stats{ display:flex; gap:10px; flex-wrap:wrap; position:relative; }
+  .hero-stat{
+    background: rgba(255,255,255,0.18); border-radius:12px; padding:10px 14px; min-width:100px;
+    backdrop-filter: blur(4px);
+  }
+  .hero-stat .n{ font-family:'Baloo 2', sans-serif; font-size:20px; font-weight:700; }
+  .hero-stat .l{ font-size:11px; opacity:0.9; margin-top:1px; }
+
+  .home-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; margin-bottom:22px; }
+  @media (max-width: 760px){ .home-grid{ grid-template-columns: 1fr; } }
+  .nav-card{
+    border-radius: var(--radius); padding:20px; color:#fff; text-align:left;
+    display:flex; flex-direction:column; gap:6px; box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease;
+  }
+  .nav-card:hover{ transform: translateY(-3px); }
+  .nav-card .nc-icon{ font-size:30px; margin-bottom:4px; }
+  .nav-card .nc-title{ font-family:'Baloo 2', sans-serif; font-size:18px; font-weight:700; }
+  .nav-card .nc-desc{ font-size:12.5px; opacity:0.92; line-height:1.55; }
+  .nav-card.classroom{ background: linear-gradient(135deg, var(--blue), #6FC3FF); }
+  .nav-card.profile{ background: linear-gradient(135deg, var(--purple), #C4A8FF); }
+  .nav-card.photobooth{ background: linear-gradient(135deg, var(--pink), var(--orange)); }
+
+  .focus-card{
+    display:flex; gap:16px; align-items:center; flex-wrap:wrap;
+    background: var(--surface); border:1.5px solid var(--border); border-radius: var(--radius);
+    padding:18px 20px; box-shadow: var(--shadow-sm);
+  }
+  .focus-card .fc-icon{
+    font-size:32px; width:58px; height:58px; border-radius:14px; background: var(--amber-soft);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .focus-card .fc-text{ flex:1; min-width:200px; }
+  .focus-card .fc-label{ font-size:11px; color: var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px; }
+  .focus-card .fc-title{ font-family:'Baloo 2', sans-serif; font-size:17px; font-weight:700; margin-bottom:3px; }
+  .focus-card .fc-sub{ font-size:13px; color: var(--text-muted); }
+
+  /* ---------- CLASSROOM ---------- */
+  .page-head{ margin-bottom:18px; }
+  .page-head h1{ font-size:24px; margin-bottom:4px; }
+  .page-head p{ color: var(--text-muted); font-size:13.5px; margin:0; }
+
+  .section-title{ font-size:16px; font-weight:700; margin: 4px 0 12px; font-family:'Baloo 2', sans-serif; }
+  .ex-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(190px,1fr)); gap:14px;
+  }
+  .ex-card{
+    background: var(--surface); border:1.5px solid var(--border); border-radius: var(--radius);
+    padding:16px; display:flex; flex-direction:column; gap:8px; cursor:pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  .ex-card:hover{ border-color: var(--green); transform: translateY(-3px); }
+  .ex-icon{
+    font-size:26px; width:48px; height:48px; border-radius:12px; background: var(--surface-2);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ex-name{ font-size:15px; font-weight:700; font-family:'Baloo 2', sans-serif; }
+  .ex-best{ font-size:12px; color: var(--text-muted); }
+  .badge{
+    display:inline-block; font-size:11px; padding:4px 10px; border-radius:999px;
+    font-weight:700; width:fit-content;
+  }
+  .badge-completed{ background: var(--green-soft); color: #0C8F63; }
+  .badge-good{ background: var(--blue-soft); color: #1E7FC7; }
+  .badge-fair{ background: var(--amber-soft); color: #B27700; }
+  .badge-keep{ background: var(--orange-soft); color: #C15A28; }
+  .badge-new{ background: var(--surface-2); color: var(--text-muted); }
+
+  /* ---------- levels screen ---------- */
+  .level-list{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+  .level-card{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background: var(--surface); border:1.5px solid var(--border); border-radius:16px; padding:15px 18px;
+    box-shadow: var(--shadow-sm);
+  }
+  .level-card .li-name{ font-weight:700; font-size:14.5px; margin-bottom:3px; font-family:'Baloo 2', sans-serif; }
+  .level-card .li-desc{ font-size:12px; color: var(--text-muted); }
+  .ex-header{ display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+  .ex-header .ex-icon{ font-size:30px; width:58px; height:58px; }
+  .ex-header h2{ font-size:20px; }
+  .ex-header p{ color: var(--text-muted); font-size:13px; margin:3px 0 0; max-width:60ch; line-height:1.6; }
+
+  /* ---------- play screen ---------- */
+  .stage{
+    position:relative; width:100%; aspect-ratio: 4/3;
+    background: #1A1A24; border:1.5px solid var(--border); border-radius:18px;
+    overflow:hidden; box-shadow: var(--shadow);
+  }
+  #video{ display:none; }
+  canvas{ width:100%; height:100%; display:block; }
+
+  .hud-top{
+    position:absolute; top:12px; left:12px; right:12px;
+    display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    pointer-events:none;
+  }
+  .hud-box{
+    background: rgba(20,18,28,0.78); border:1px solid rgba(255,255,255,0.12);
+    border-radius:10px; padding:8px 13px; text-align:center; color:#fff;
+  }
+  .hud-box .hl{ font-size:10px; color: rgba(255,255,255,0.65); }
+  .hud-box .hv{ font-family:'IBM Plex Mono', monospace; font-size:16px; margin-top:1px; color:#fff; }
+  .hud-instruction{
+    background: rgba(20,18,28,0.78); border:1px solid rgba(255,255,255,0.12);
+    border-radius:10px; padding:9px 18px; text-align:center; flex:1; max-width:340px; color:#fff;
+  }
+  .hud-instruction .hi-main{ font-size:14px; font-weight:600; }
+  .hud-instruction .hi-sub{ font-size:11px; color: #6EE7C8; margin-top:3px; font-family:'IBM Plex Mono', monospace; }
+
+  .hud-toast{
+    position:absolute; left:50%; bottom:16px; transform: translate(-50%, 10px);
+    background: rgba(20,18,28,0.88); border:1px solid var(--green);
+    border-radius:999px; padding:9px 18px; font-size:13px; color:#fff;
+    display:flex; align-items:center; gap:8px; opacity:0; transition: all 0.18s ease;
+    pointer-events:none; white-space:nowrap;
+  }
+  .hud-toast.show{ opacity:1; transform: translate(-50%, 0); }
+  .hud-toast.miss{ border-color: var(--orange); }
+
+  .hud-hint{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:16px; text-align:center; padding:20px; background: rgba(20,18,28,0.7);
+  }
+  .hud-hint p{ max-width:38ch; color: rgba(255,255,255,0.75); font-size:13px; line-height:1.6; margin:0; }
+
+  .play-controls{ display:flex; justify-content:flex-end; gap:10px; margin-top:14px; }
+
+  /* ---------- results screen ---------- */
+  .results-wrap{ max-width: 480px; margin: 0 auto; text-align:center; }
+  .result-badge{
+    display:inline-block; font-size:13px; padding:7px 18px; border-radius:999px;
+    font-weight:700; margin-bottom:14px;
+  }
+  .result-score{ font-family:'Baloo 2', sans-serif; font-size:52px; font-weight:800; margin-bottom:4px; color: var(--text); }
+  .result-sub{ color: var(--text-muted); font-size:13px; margin-bottom:22px; }
+  .result-stats{ display:flex; gap:10px; margin-bottom:22px; }
+  .stat-box{
+    flex:1; min-width:100px; background: var(--surface-2); border:1.5px solid var(--border);
+    border-radius:14px; padding:12px 14px; text-align:left;
+  }
+  .stat-box .n{ font-family:'Baloo 2', sans-serif; font-size:19px; color: var(--green); font-weight:700; }
+  .stat-box .l{ font-size:11px; color: var(--text-muted); margin-top:2px; }
+  .tips-box{ text-align:left; margin-bottom:20px; }
+  .tips-box h3{ font-size:13px; color: var(--text-muted); margin-bottom:10px; font-weight:700; }
+  .tips-box ul{ margin:0; padding-left:18px; font-size:14px; line-height:1.8; }
+  .result-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:8px; }
+
+  .footer-note{ text-align:center; color: var(--text-muted); font-size:12px; margin-top:34px; line-height:1.7; }
+
+  /* ---------- confetti ---------- */
+  .confetti-piece{
+    position:fixed; top:-20px; z-index:999; pointer-events:none; border-radius:3px;
+    animation: confetti-fall linear forwards;
+  }
+  @keyframes confetti-fall{
+    to{ transform: translateY(105vh) rotate(540deg); opacity:0.2; }
+  }
+
+  /* ---------- PROFILE ---------- */
+  .profile-hero{
+    display:flex; gap:22px; align-items:center; flex-wrap:wrap;
+    background: linear-gradient(135deg, #2E2A55, #4A3B8C 55%, #7A4FBF);
+    border-radius:22px; padding:26px; color:#fff; margin-bottom:20px; box-shadow: var(--shadow);
+  }
+  .battle-avatar{
+    position:relative; width:120px; height:120px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:58px;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.28), rgba(255,255,255,0.05));
+    border:4px solid rgba(255,255,255,0.35);
+    box-shadow: 0 0 0 6px rgba(255,255,255,0.08), 0 8px 22px rgba(0,0,0,0.25);
+  }
+  .battle-avatar .gear-badge{
+    position:absolute; width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+    background: rgba(30,25,60,0.9); border:2px solid rgba(255,255,255,0.25);
+    filter: grayscale(1) opacity(0.45);
+  }
+  .battle-avatar .gear-badge.mastered{
+    filter:none; background: linear-gradient(135deg, var(--yellow), var(--orange));
+    border-color:#fff; box-shadow: 0 0 10px rgba(255,217,61,0.7);
+  }
+  .battle-avatar .gb-0{ top:-6px; left:50%; transform: translateX(-50%); }
+  .battle-avatar .gb-1{ top:22%; right:-12px; }
+  .battle-avatar .gb-2{ bottom:8%; right:2%; }
+  .battle-avatar .gb-3{ bottom:8%; left:2%; }
+  .battle-avatar .gb-4{ top:22%; left:-12px; }
+
+  .profile-info{ flex:1; min-width:200px; }
+  .profile-name{ font-family:'Baloo 2', sans-serif; font-size:24px; font-weight:800; }
+  .profile-rank{
+    display:inline-block; margin-top:4px; font-size:12px; font-weight:700; padding:4px 12px;
+    border-radius:999px; background: rgba(255,255,255,0.18);
+  }
+  .xp-row{ margin-top:14px; max-width:320px; }
+  .xp-label{ display:flex; justify-content:space-between; font-size:11px; opacity:0.85; margin-bottom:5px; }
+  .xp-bar{ height:9px; border-radius:999px; background: rgba(255,255,255,0.18); overflow:hidden; }
+  .xp-fill{ height:100%; background: linear-gradient(90deg, var(--yellow), var(--orange)); border-radius:999px; }
+
+  .profile-dash-grid{
+    display:grid; grid-template-columns: 1.1fr 1.4fr; gap:14px; margin-bottom:22px;
+  }
+  @media (max-width: 720px){ .profile-dash-grid{ grid-template-columns: 1fr; } }
+  .ring-wrap{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .ring-label{ font-size:13px; color: var(--text-muted); }
+  .stat-row{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .recommend{
+    display:flex; gap:10px; align-items:flex-start;
+    background: var(--green-soft); border:1.5px solid rgba(20,184,127,0.25);
+    border-radius:12px; padding:12px 14px; margin-top:14px; font-size:13px; line-height:1.6;
+  }
+  .recommend .dot-icon{ color: var(--green); font-size:15px; }
+  .chart-title{ font-size:13px; color: var(--text-muted); margin-bottom:8px; font-weight:600; }
+
+  .level-breakdown{ display:flex; flex-direction:column; gap:10px; }
+  .lb-group{ margin-bottom:6px; }
+  .lb-group-head{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px; margin-bottom:8px; font-family:'Baloo 2', sans-serif; }
+  .lb-row{
+    display:flex; align-items:center; gap:12px; background: var(--surface); border:1.5px solid var(--border);
+    border-radius:14px; padding:10px 12px; margin-bottom:8px;
+  }
+  .lb-thumb{
+    width:44px; height:44px; border-radius:10px; background: var(--surface-2); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:18px; overflow:hidden; color: var(--text-muted);
+  }
+  .lb-thumb img{ width:100%; height:100%; object-fit:cover; }
+  .lb-mid{ flex:1; min-width:0; }
+  .lb-mid .n{ font-size:13.5px; font-weight:700; }
+  .lb-mid .s{ font-size:12px; color: var(--text-muted); }
+
+  /* ---------- PHOTOBOOTH ---------- */
+  .booth-stage{
+    position:relative; max-width:520px; margin:0 auto; aspect-ratio: 4/3;
+    background:#1A1A24; border-radius:20px; overflow:hidden; box-shadow: var(--shadow);
+    border:1.5px solid var(--border);
+  }
+  #boothVideo{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; transform: scaleX(-1); background:#1A1A24;
+  }
+  #boothCanvas{ display:none; }
+  .booth-frame-overlay{
+    position:absolute; inset:0; pointer-events:none;
+    border:10px solid transparent;
+    background: linear-gradient(#1A1A24,#1A1A24) padding-box, linear-gradient(135deg, var(--pink), var(--yellow), var(--blue)) border-box;
+    border-radius:20px;
+  }
+  .booth-controls{ display:flex; justify-content:center; gap:12px; margin-top:16px; }
+  .booth-context{
+    max-width:520px; margin:0 auto 14px; text-align:center;
+    background: var(--amber-soft); border:1.5px dashed var(--amber); border-radius:14px; padding:12px 16px;
+    font-size:13.5px;
+  }
+  .booth-preview-wrap{ max-width:520px; margin:0 auto; text-align:center; }
+  .booth-preview-wrap img{ width:100%; border-radius:20px; box-shadow: var(--shadow); border:1.5px solid var(--border); }
+
+  /* ---------- TUTORIAL ---------- */
+  .tutorial-wrap{ max-width:560px; margin:0 auto; text-align:center; }
+  .tutorial-icon{
+    width:64px; height:64px; border-radius:18px; margin:0 auto 14px;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    display:flex; align-items:center; justify-content:center; font-size:28px;
+    box-shadow: var(--shadow);
+  }
+  .tutorial-wrap h2{ font-size:22px; margin-bottom:6px; }
+  .tutorial-goal{ color: var(--text-muted); font-size:14px; margin:0 0 22px; line-height:1.6; }
+  .tutorial-steps{ text-align:left; display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+  .tut-step{
+    display:flex; align-items:flex-start; gap:12px; background: var(--surface);
+    border:1.5px solid var(--border); border-radius:14px; padding:12px 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .tut-step .tut-num{
+    flex-shrink:0; width:26px; height:26px; border-radius:50%;
+    background: var(--green-soft); color: var(--green); font-weight:700; font-size:13px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .tut-step .tut-text{ font-size:13.5px; line-height:1.55; padding-top:2px; }
+  .tutorial-tips{
+    text-align:left; font-size:13px; color: var(--text-muted); margin-bottom:22px;
+    background: var(--blue-soft); border-color: rgba(61,169,252,0.3);
+  }
+  .tutorial-actions{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
+
+  .gallery-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap:12px;
+  }
+  .gallery-item{
+    background: var(--surface); border:1.5px solid var(--border); border-radius:14px; overflow:hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .gallery-item img{ width:100%; aspect-ratio:4/3; object-fit:cover; display:block; }
+  .gallery-item .gi-label{ padding:8px 10px; font-size:11.5px; font-weight:600; color: var(--text-muted); }
+  .empty-note{
+    text-align:center; color: var(--text-muted); font-size:13.5px; padding:30px 16px;
+    background: var(--surface-2); border-radius:14px; border:1.5px dashed var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section class="screen active" id="screen-login">
+  <div class="login-wrap">
+    <div class="login-mark">V</div>
+    <h1>Welcome to V-Hab</h1>
+    <p>Sign in with the username and password provided by your care team to start your training.</p>
+    <div class="card login-card">
+      <div class="login-error" id="loginError"></div>
+      <div class="field">
+        <label for="loginUser">Username</label>
+        <input type="text" id="loginUser" autocomplete="username" placeholder="e.g. patient1">
+      </div>
+      <div class="field">
+        <label for="loginPass">Password</label>
+        <input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary btn-block" id="loginBtn">Sign in</button>
+    </div>
+    <div class="login-hint">
+      This is a demo build. Try <b>demo</b> / <b>demo123</b> to sign in — in production, accounts are provisioned by your clinic.
+    </div>
+  </div>
+</section>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="mainNav">
+  <div class="navbar-inner">
+    <div class="brand">
+      <div class="brand-mark">V</div>
+      <div class="brand-name">V-Hab</div>
+    </div>
+    <div class="nav-links">
+      <button class="nav-link" data-nav="home"><span class="ic">🏠</span>Home</button>
+      <button class="nav-link" data-nav="classroom"><span class="ic">🎯</span>Classroom</button>
+      <button class="nav-link" data-nav="profile"><span class="ic">🛡️</span>Profile</button>
+      <button class="nav-link" data-nav="photobooth"><span class="ic">📸</span>Photobooth</button>
+    </div>
+    <div class="user-chip">
+      <div class="avatar-mini" id="navAvatar">--</div>
+      <span class="pname" id="navName">--</span>
+      <button id="logoutBtn">Log out</button>
+    </div>
+  </div>
+</nav>
+
+<div class="app">
+
+  <!-- HOME -->
+  <section class="screen" id="screen-home">
+    <div class="hero">
+      <h1 id="homeGreeting">Welcome back!</h1>
+      <p>Every rep counts. Head into the Classroom to keep building strength and control — one playful exercise at a time.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="n" id="homeSessions">0</div><div class="l">sessions</div></div>
+        <div class="hero-stat"><div class="n" id="homeLevels">0/15</div><div class="l">levels conquered</div></div>
+        <div class="hero-stat"><div class="n" id="homeAvg">--</div><div class="l">avg score</div></div>
+      </div>
+    </div>
+
+    <div class="focus-card" style="margin-bottom:22px;">
+      <div class="fc-icon" id="homeFocusIcon">✨</div>
+      <div class="fc-text">
+        <div class="fc-label">Today's focus</div>
+        <div class="fc-title" id="homeFocusTitle">Get started</div>
+        <div class="fc-sub" id="homeFocusSub">Complete your first exercise to get personalized tips.</div>
+      </div>
+      <button class="btn btn-bright btn-sm" id="homeFocusBtn">Start now</button>
+    </div>
+
+    <div class="section-title">Where to next?</div>
+    <div class="home-grid">
+      <div class="nav-card classroom" data-nav="classroom">
+        <div class="nc-icon">🎯</div>
+        <div class="nc-title">Classroom</div>
+        <div class="nc-desc">Camera-guided hand exercises across five activities and three levels each.</div>
+      </div>
+      <div class="nav-card profile" data-nav="profile">
+        <div class="nc-icon">🛡️</div>
+        <div class="nc-title">Profile</div>
+        <div class="nc-desc">See your battle avatar, gear earned, and full performance dashboard.</div>
+      </div>
+      <div class="nav-card photobooth" data-nav="photobooth">
+        <div class="nc-icon">📸</div>
+        <div class="nc-title">Photobooth</div>
+        <div class="nc-desc">Capture a victory photo after a level and build your achievement gallery.</div>
+      </div>
+    </div>
+
+    <p class="footer-note">Tracking runs locally via MediaPipe Hands. This is a wellness demo, not a medical device — check with a clinician before using it as part of a treatment plan.</p>
+  </section>
+
+  <!-- CLASSROOM -->
+  <section class="screen" id="screen-classroom">
+    <div class="page-head">
+      <h1>Classroom</h1>
+      <p>Pick an exercise to start your training. Each one has three levels that get progressively trickier.</p>
+    </div>
+    <div class="ex-grid" id="exerciseGrid"></div>
+  </section>
+
+  <!-- LEVEL SELECT -->
+  <section class="screen" id="screen-levels">
+    <button class="link-back" id="backToDashFromLevels">← back to classroom</button>
+    <div class="ex-header">
+      <div class="ex-icon" id="levelExIcon">✋</div>
+      <div>
+        <h2 id="levelExName">Exercise</h2>
+        <p id="levelExDesc"></p>
+      </div>
+    </div>
+    <div class="level-list" id="levelList"></div>
+  </section>
+
+  <!-- TUTORIAL -->
+  <section class="screen" id="screen-tutorial">
+    <button class="link-back" id="backToLevelsFromTutorial">← back to levels</button>
+    <div class="tutorial-wrap">
+      <div class="tutorial-icon" id="tutIcon">✋</div>
+      <h2 id="tutTitle">Exercise</h2>
+      <p class="tutorial-goal" id="tutGoal"></p>
+      <div class="tutorial-steps" id="tutSteps"></div>
+      <div class="card tutorial-tips">💡 Uses your camera. Make sure your whole hand is visible in the frame, with even, front-facing light.</div>
+      <div class="tutorial-actions">
+        <button class="btn btn-ghost" id="tutSkipBtn">skip tutorial</button>
+        <button class="btn btn-primary" id="tutBeginBtn">▶ begin play</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section class="screen" id="screen-play">
+    <button class="link-back" id="backToLevelsFromPlay">← end &amp; go back</button>
+    <div class="stage" id="stage">
+      <video id="video" playsinline></video>
+      <canvas id="canvas"></canvas>
+      <div class="hud-top">
+        <div class="hud-box"><div class="hl">time</div><div class="hv" id="hudTime">00:00</div></div>
+        <div class="hud-instruction">
+          <div class="hi-main" id="hudInstruction">Get ready</div>
+          <div class="hi-sub" id="hudProgress"></div>
+        </div>
+        <div class="hud-box"><div class="hl">score</div><div class="hv" id="hudScore">0</div></div>
+      </div>
+      <div class="hud-toast" id="hudToast"></div>
+      <div class="hud-hint" id="hudHint">
+        <p>Uses your camera. Position your hand so it's fully visible, then start.</p>
+        <button class="btn btn-primary" id="startCameraBtn">start camera</button>
+        <button class="btn btn-ghost btn-sm" id="hintTutorialBtn">📖 how to play</button>
+      </div>
+    </div>
+    <div class="play-controls">
+      <button class="btn btn-ghost btn-sm" id="stopCameraBtn" style="display:none;">stop</button>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="screen" id="screen-results">
+    <div class="results-wrap">
+      <span class="result-badge" id="resultBadge">Good</span>
+      <div class="result-score" id="resultScore">0</div>
+      <div class="result-sub" id="resultSub">Exercise · Level 1</div>
+      <div class="result-stats">
+        <div class="stat-box"><div class="n" id="resultReps">0/0</div><div class="l">reps</div></div>
+        <div class="stat-box"><div class="n" id="resultAccuracy">0%</div><div class="l">accuracy</div></div>
+        <div class="stat-box"><div class="n" id="resultTime">0:00</div><div class="l">time taken</div></div>
+      </div>
+      <div class="tips-box card">
+        <h3>Tips to improve</h3>
+        <ul id="tipsList"></ul>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-ghost" id="retryBtn">retry level</button>
+        <button class="btn btn-ghost" id="nextLevelBtn" style="display:none;">next level</button>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-bright" id="capturePhotoBtn">📸 capture victory photo</button>
+        <button class="btn btn-primary" id="toDashboardBtn">back to classroom</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROFILE -->
+  <section class="screen" id="screen-profile">
+    <div class="profile-hero">
+      <div class="battle-avatar" id="battleAvatar">
+        🦸
+        <div class="gear-badge gb-0" data-ex="grab">✋</div>
+        <div class="gear-badge gb-1" data-ex="pinch">🤏</div>
+        <div class="gear-badge gb-2" data-ex="touch">👆</div>
+        <div class="gear-badge gb-3" data-ex="trace">〰️</div>
+        <div class="gear-badge gb-4" data-ex="squeeze">🤛</div>
+      </div>
+      <div class="profile-info">
+        <div class="profile-name" id="profileName">--</div>
+        <span class="profile-rank" id="profileRank">Recruit</span>
+        <div class="xp-row">
+          <div class="xp-label"><span>Levels conquered</span><span id="xpText">0/15</span></div>
+          <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-dash-grid">
+      <div class="card">
+        <div class="chart-title">Overall score</div>
+        <div class="ring-wrap">
+          <canvas id="scoreRing" width="150" height="150"></canvas>
+          <div class="ring-label" id="ringLabel">no sessions yet</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-box"><div class="n" id="statSessions">0</div><div class="l">sessions</div></div>
+          <div class="stat-box"><div class="n" id="statAccuracy">--</div><div class="l">avg accuracy</div></div>
+          <div class="stat-box"><div class="n" id="statTried">0/5</div><div class="l">exercises tried</div></div>
+        </div>
+        <div class="recommend"><span class="dot-icon">●</span><span id="recommendText">Complete your first exercise to get personalized tips.</span></div>
+      </div>
+      <div class="card">
+        <div class="chart-title">Progress over recent sessions</div>
+        <canvas id="progressChart" width="500" height="220" style="width:100%; height:220px;"></canvas>
+      </div>
+    </div>
+
+    <div class="section-title">Performance by level</div>
+    <div class="level-breakdown" id="levelBreakdown"></div>
+  </section>
+
+  <!-- PHOTOBOOTH -->
+  <section class="screen" id="screen-photobooth">
+    <div class="page-head">
+      <h1>Photobooth</h1>
+      <p>Snap a victory photo after finishing a level, or grab a free shot anytime. Photos are saved on this device only.</p>
+    </div>
+
+    <div class="booth-context" id="boothContext" style="display:none;"></div>
+
+    <div id="boothCaptureArea">
+      <div class="booth-stage" id="boothStage">
+        <video id="boothVideo" playsinline autoplay muted></video>
+        <canvas id="boothCanvas"></canvas>
+        <div class="booth-frame-overlay"></div>
+      </div>
+      <div class="booth-controls">
+        <button class="btn btn-ghost" id="boothStartBtn">open camera</button>
+        <button class="btn btn-bright" id="boothSnapBtn" style="display:none;">📸 capture</button>
+        <button class="btn btn-ghost" id="boothStopBtn" style="display:none;">close camera</button>
+      </div>
+    </div>
+
+    <div id="boothPreviewArea" style="display:none;">
+      <div class="booth-preview-wrap">
+        <img id="boothPreviewImg" alt="Captured photo">
+        <div class="booth-controls">
+          <button class="btn btn-ghost" id="boothRetakeBtn">retake</button>
+          <button class="btn btn-primary" id="boothSaveBtn">save photo</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:30px;">Your gallery</div>
+    <div id="galleryWrap"></div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script>
+(function(){
+"use strict";
+
+/* ============================= CONFIG ============================= */
+
+const EXERCISES = [
+  {
+    id:'grab', name:'Object Grab', icon:'✋',
+    desc:'Reach toward the object and pinch to grab it before time runs out.',
+    instruction:'Grab the target',
+    howTo:[
+      'Position your hand in frame, palm facing the camera.',
+      'Reach toward the glowing target as it appears on screen.',
+      'Pinch your thumb and index finger together on the target to grab it.'
+    ],
+    levels:[
+      {label:'Level 1', targetReps:3, timeLimit:45, radius:0.09},
+      {label:'Level 2', targetReps:5, timeLimit:40, radius:0.075},
+      {label:'Level 3', targetReps:7, timeLimit:35, radius:0.06},
+    ]
+  },
+  {
+    id:'pinch', name:'Pinch Exercise', icon:'🤏',
+    desc:'Pinch your thumb and index finger together, then release fully, to complete a rep.',
+    instruction:'Pinch & release',
+    howTo:[
+      'Hold your hand steady in the middle of the camera frame.',
+      'Touch your thumb and index fingertip fully together.',
+      'Fully separate them again — that completes one rep.'
+    ],
+    levels:[
+      {label:'Level 1', targetReps:6, timeLimit:40},
+      {label:'Level 2', targetReps:9, timeLimit:40},
+      {label:'Level 3', targetReps:13, timeLimit:45},
+    ]
+  },
+  {
+    id:'touch', name:'Finger Touch', icon:'👆',
+    desc:'Touch each glowing point with your index fingertip as it lights up.',
+    instruction:'Touch the point',
+    howTo:[
+      'Keep your index finger extended and ready to move.',
+      'Watch for a point to light up on screen, then move your fingertip to it.',
+      'Touch it before its timer runs out, then wait for the next point.'
+    ],
+    levels:[
+      {label:'Level 1', targetReps:6, timeLimit:35, dotTimeout:2400, radius:0.09},
+      {label:'Level 2', targetReps:9, timeLimit:35, dotTimeout:1800, radius:0.075},
+      {label:'Level 3', targetReps:12, timeLimit:40, dotTimeout:1300, radius:0.06},
+    ]
+  },
+  {
+    id:'trace', name:'Path Trace', icon:'〰️',
+    desc:'Follow the path with your index fingertip from one end to the other.',
+    instruction:'Trace the path',
+    howTo:[
+      'Find the winding line drawn across the screen.',
+      'Follow it closely with your index fingertip, moving smoothly rather than quickly.',
+      'Stay on the path all the way from one end to the other.'
+    ],
+    levels:[
+      {label:'Level 1', timeLimit:35, amp:0.14, freq:1, tolerance:0.085},
+      {label:'Level 2', timeLimit:35, amp:0.17, freq:1.5, tolerance:0.065},
+      {label:'Level 3', timeLimit:40, amp:0.18, freq:2.2, tolerance:0.05},
+    ]
+  },
+  {
+    id:'squeeze', name:'Ball Squeeze', icon:'🤛',
+    desc:'Close your hand into a fist, then open it fully, to complete a rep.',
+    instruction:'Squeeze & release',
+    howTo:[
+      'Show your open hand flat to the camera.',
+      'Close it into a full fist.',
+      'Open it all the way flat again — that completes one rep.'
+    ],
+    levels:[
+      {label:'Level 1', targetReps:8, timeLimit:35},
+      {label:'Level 2', targetReps:12, timeLimit:35},
+      {label:'Level 3', targetReps:16, timeLimit:30},
+    ]
+  },
+];
+const TOTAL_LEVELS = EXERCISES.reduce((a,e)=>a+e.levels.length,0);
+
+const TIPS = {
+  grab:{
+    low:['Bring your fingertip fully onto the object before pinching — reaching a little further usually fixes a miss.','Try slowing your reach down; fast swipes are tracked less reliably than smooth ones.'],
+    mid:['You are landing most grabs — tightening the pinch fully (thumb and index touching) will make each one register faster.','Keep your hand roughly the same distance from the camera between reps for more consistent tracking.'],
+    high:['Strong, consistent grabs. Try the next level for a tighter time limit.','Great control — this is a good exercise to repeat daily for a couple of minutes.']
+  },
+  pinch:{
+    low:['Make sure your thumb and index finger fully separate between pinches — a rep only counts once you release.','Rest your wrist on a table if it helps isolate the thumb-to-finger motion.'],
+    mid:['Good rhythm. Aim for a brief, complete pinch rather than a quick tap for more reliable counting.','Try to keep pace steady rather than rushing the last few reps.'],
+    high:['Clean, complete pinches throughout. Ready for a higher rep target.','Nice control of the release — that is often the harder half of this motion.']
+  },
+  touch:{
+    low:['Move your fingertip toward the point as soon as it lights up rather than waiting.','If you are missing points, try sitting a little closer so your reach is shorter.'],
+    mid:['Most points landed — reacting slightly faster to each new point will improve your hit rate.','Keep your index finger extended between touches so it is ready to move immediately.'],
+    high:['Fast, accurate touches across the board. Try a level with less time per point.','Excellent reaction time and control.']
+  },
+  trace:{
+    low:['Move more slowly along the path — the tracker favors smooth, continuous motion over quick jumps.','Try tracing the first section a few times on its own before doing the full path.'],
+    mid:['Good progress along the path. Small, controlled corrections will help you stay inside the tighter turns.','Keep your fingertip pointed rather than curled to keep tracking crisp on tight curves.'],
+    high:['Smooth, accurate tracing from end to end. A tighter tolerance level is a good next step.','Great fine-motor control on those turns.']
+  },
+  squeeze:{
+    low:['Make sure you are closing all the way into a fist and opening all the way flat — partial motions are harder to count.','Try a slower, more deliberate squeeze rather than a quick flick.'],
+    mid:['Solid reps. A slightly fuller open between squeezes will make counting more consistent.','Keep a steady rhythm rather than speeding up toward the end.'],
+    high:['Strong, full-range reps throughout. Try a higher rep target next.','Excellent grip control and consistency.']
+  }
+};
+const GENERAL_TIPS = [
+  'Keep your whole hand inside the camera frame for the most reliable tracking.',
+  'Even, front-facing light works better than backlighting from a window.',
+  'Short, frequent sessions tend to help more than one long session.'
+];
+
+/* ============================= AUTH ============================= */
+// Accounts provisioned by the clinic. Replace with a real backend auth check in production.
+const PROVISIONED_USERS = [
+  { username:'demo', password:'demo123', name:'Alex' },
+  { username:'patient1', password:'vhab2026', name:'Jordan' },
+  { username:'patient2', password:'vhab2026', name:'Sam' },
+];
+
+let currentUser = null;
+
+function keyFor(base){ return base + '_' + (currentUser ? currentUser.username : 'guest'); }
+
+/* ============================= STORAGE ============================= */
+
+function loadProfile(){ try{ return JSON.parse(localStorage.getItem(keyFor('vhab_profile_v2'))); }catch(e){ return null; } }
+function saveProfile(p){ localStorage.setItem(keyFor('vhab_profile_v2'), JSON.stringify(p)); }
+function loadProgress(){
+  try{ const p = JSON.parse(localStorage.getItem(keyFor('vhab_progress_v2'))); if(p) return p; }catch(e){}
+  return { sessions: [], bestByExercise: {}, photos: {}, freePhotos: [] };
+}
+function saveProgress(p){
+  try{ localStorage.setItem(keyFor('vhab_progress_v2'), JSON.stringify(p)); }
+  catch(e){ console.warn('Storage full, trimming photos', e); }
+}
+
+let profile = null;
+let progress = { sessions: [], bestByExercise: {}, photos: {}, freePhotos: [] };
+
+/* ============================= SCREEN ROUTING ============================= */
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  currentScreen = id;
+  if(id !== 'play' && cameraActive) stopCameraFeed();
+  if(id !== 'photobooth' && boothActive) stopBooth();
+  document.querySelectorAll('.nav-link').forEach(b=>{
+    b.classList.toggle('active', b.dataset.nav===id);
+  });
+  if(id==='home') renderHome();
+  if(id==='classroom') renderClassroom();
+  if(id==='profile') renderProfile();
+  if(id==='photobooth') renderPhotobooth();
+  window.scrollTo({top:0, behavior:'instant'});
+}
+let currentScreen = null;
+
+document.querySelectorAll('[data-nav]').forEach(el=>{
+  el.addEventListener('click', ()=> goTo(el.dataset.nav));
+});
+
+/* ============================= LOGIN ============================= */
+
+const loginUser = document.getElementById('loginUser');
+const loginPass = document.getElementById('loginPass');
+const loginError = document.getElementById('loginError');
+
+document.getElementById('loginBtn').addEventListener('click', attemptLogin);
+[loginUser, loginPass].forEach(inp=> inp.addEventListener('keydown', e=>{ if(e.key==='Enter') attemptLogin(); }));
+
+function attemptLogin(){
+  const u = loginUser.value.trim();
+  const p = loginPass.value;
+  const match = PROVISIONED_USERS.find(acc => acc.username.toLowerCase()===u.toLowerCase() && acc.password===p);
+  if(!match){
+    loginError.textContent = 'Invalid username or password. Please check with your care team.';
+    loginError.classList.add('show');
+    return;
+  }
+  loginError.classList.remove('show');
+  currentUser = match;
+  profile = loadProfile();
+  if(!profile){
+    profile = { name: match.name, username: match.username, createdAt: Date.now() };
+    saveProfile(profile);
+  }
+  progress = loadProgress();
+
+  document.getElementById('navAvatar').textContent = initials(profile.name);
+  document.getElementById('navName').textContent = profile.name;
+  document.getElementById('mainNav').classList.add('show');
+
+  loginPass.value = '';
+  goTo('home');
+}
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  currentUser = null; profile = null;
+  progress = { sessions: [], bestByExercise: {}, photos: {}, freePhotos: [] };
+  document.getElementById('mainNav').classList.remove('show');
+  loginUser.value = ''; loginPass.value = '';
+  goTo('login');
+});
+
+function initials(name){
+  return name.trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('') || '?';
+}
+
+function statusForScore(score){
+  if(score>=90) return {label:'Completed', cls:'badge-completed'};
+  if(score>=70) return {label:'Good', cls:'badge-good'};
+  if(score>=45) return {label:'Fair', cls:'badge-fair'};
+  return {label:'Keep Practicing', cls:'badge-keep'};
+}
+
+function levelsConquered(){
+  let n = 0;
+  const best = progress.bestByExercise || {};
+  for(const ex of EXERCISES){ const b = best[ex.id]; if(b && b.score>=70) n += (b.levelIdx+1); }
+  return Math.min(n, TOTAL_LEVELS);
+}
+function masteredExercises(){
+  const best = progress.bestByExercise || {};
+  return EXERCISES.filter(ex=> best[ex.id] && best[ex.id].score>=70).length;
+}
+function rankTitle(masteredCount){
+  if(masteredCount>=5) return 'Champion';
+  if(masteredCount>=3) return 'Warrior';
+  if(masteredCount>=1) return 'Trainee';
+  return 'Recruit';
+}
+function buildRecommendation(sessions, avgScore){
+  if(sessions.length===0) return 'Complete your first exercise to get personalized tips.';
+  const best = progress.bestByExercise || {};
+  const untried = EXERCISES.filter(e=>!best[e.id]);
+  if(untried.length) return `You haven't tried "${untried[0].name}" yet — give it a go to round out your routine.`;
+  let worst = EXERCISES[0].id, worstScore = 101;
+  for(const ex of EXERCISES){ const b = best[ex.id]; if(b && b.score < worstScore){ worstScore = b.score; worst = ex.id; } }
+  const worstEx = EXERCISES.find(e=>e.id===worst);
+  return avgScore>=80
+    ? 'Great progress across the board! Keep up regular practice to maintain your control.'
+    : `Your "${worstEx.name}" score has the most room to grow — a few extra reps there should help.`;
+}
+
+/* ============================= HOME ============================= */
+
+function renderHome(){
+  if(!profile) return;
+  document.getElementById('homeGreeting').textContent = 'Welcome back, ' + profile.name + '! 👋';
+  const sessions = progress.sessions || [];
+  document.getElementById('homeSessions').textContent = sessions.length;
+  document.getElementById('homeLevels').textContent = levelsConquered() + '/' + TOTAL_LEVELS;
+  const recent = sessions.slice(-10);
+  const avgScore = recent.length ? Math.round(recent.reduce((a,s)=>a+s.score,0)/recent.length) : 0;
+  document.getElementById('homeAvg').textContent = recent.length ? avgScore+'%' : '--';
+
+  const best = progress.bestByExercise || {};
+  const untried = EXERCISES.filter(e=>!best[e.id]);
+  let focusEx, focusLevel = 0, focusText;
+  if(untried.length){
+    focusEx = untried[0];
+    focusText = 'A fresh exercise to try — start at Level 1.';
+  } else {
+    let worst = EXERCISES[0], worstScore = 101;
+    for(const ex of EXERCISES){ const b = best[ex.id]; if(b && b.score < worstScore){ worstScore = b.score; worst = ex; focusLevel = b.levelIdx; } }
+    focusEx = worst;
+    focusText = 'Your score here has the most room to grow.';
+  }
+  document.getElementById('homeFocusIcon').textContent = focusEx.icon;
+  document.getElementById('homeFocusTitle').textContent = focusEx.name;
+  document.getElementById('homeFocusSub').textContent = focusText;
+  document.getElementById('homeFocusBtn').onclick = ()=> openLevelSelect(focusEx.id);
+}
+
+/* ============================= CLASSROOM ============================= */
+
+function renderClassroom(){
+  if(!profile) return;
+  const grid = document.getElementById('exerciseGrid');
+  grid.innerHTML = '';
+  for(const ex of EXERCISES){
+    const best = (progress.bestByExercise||{})[ex.id];
+    const card = document.createElement('div');
+    card.className = 'ex-card';
+    const status = best ? statusForScore(best.score) : {label:'Not started', cls:'badge-new'};
+    card.innerHTML = `
+      <div class="ex-icon">${ex.icon}</div>
+      <div class="ex-name">${ex.name}</div>
+      <div class="ex-best">${best ? 'Best: '+best.score+' pts · Lvl '+(best.levelIdx+1) : 'No attempts yet'}</div>
+      <span class="badge ${status.cls}">${status.label}</span>
+    `;
+    card.addEventListener('click', ()=>openLevelSelect(ex.id));
+    grid.appendChild(card);
+  }
+}
+
+document.getElementById('backToDashFromLevels').addEventListener('click', ()=> goTo('classroom'));
+document.getElementById('toDashboardBtn').addEventListener('click', ()=> goTo('classroom'));
+
+/* ============================= LEVEL SELECT ============================= */
+
+let activeExId = null;
+
+function openLevelSelect(exId){
+  activeExId = exId;
+  const ex = EXERCISES.find(e=>e.id===exId);
+  document.getElementById('levelExIcon').textContent = ex.icon;
+  document.getElementById('levelExName').textContent = ex.name;
+  document.getElementById('levelExDesc').textContent = ex.desc;
+  const list = document.getElementById('levelList');
+  list.innerHTML = '';
+  const best = (progress.bestByExercise||{})[exId];
+  ex.levels.forEach((lvl, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'level-card';
+    const goal = lvl.targetReps ? lvl.targetReps+' reps · '+lvl.timeLimit+'s' : 'trace the path · '+lvl.timeLimit+'s';
+    const bestAtLevel = best && best.levelIdx===idx ? `Best: ${best.score} pts` : '';
+    row.innerHTML = `
+      <div>
+        <div class="li-name">${lvl.label}</div>
+        <div class="li-desc">${goal}${bestAtLevel ? ' · '+bestAtLevel : ''}</div>
+      </div>
+      <button class="btn btn-primary btn-sm">Start</button>
+    `;
+    row.querySelector('button').addEventListener('click', ()=> openTutorial(exId, idx));
+    list.appendChild(row);
+  });
+  goTo('levels');
+}
+document.getElementById('backToLevelsFromPlay').addEventListener('click', ()=>{ openLevelSelect(activeExId); });
+
+/* ============================= TUTORIAL ============================= */
+
+let pendingTutorial = null;
+
+function openTutorial(exId, levelIdx){
+  pendingTutorial = { exId, levelIdx };
+  const ex = EXERCISES.find(e=>e.id===exId);
+  const level = ex.levels[levelIdx];
+  document.getElementById('tutIcon').textContent = ex.icon;
+  document.getElementById('tutTitle').textContent = ex.name + ' · ' + level.label;
+  document.getElementById('tutGoal').textContent = ex.desc;
+  const stepsWrap = document.getElementById('tutSteps');
+  stepsWrap.innerHTML = (ex.howTo||[]).map((step,i)=>`
+    <div class="tut-step">
+      <div class="tut-num">${i+1}</div>
+      <div class="tut-text">${step}</div>
+    </div>
+  `).join('');
+  goTo('tutorial');
+}
+document.getElementById('backToLevelsFromTutorial').addEventListener('click', ()=>{ openLevelSelect(activeExId); });
+document.getElementById('tutSkipBtn').addEventListener('click', ()=>{
+  if(pendingTutorial) beginPlay(pendingTutorial.exId, pendingTutorial.levelIdx);
+});
+document.getElementById('tutBeginBtn').addEventListener('click', ()=>{
+  if(pendingTutorial) beginPlay(pendingTutorial.exId, pendingTutorial.levelIdx);
+});
+document.getElementById('hintTutorialBtn').addEventListener('click', ()=>{
+  if(session) openTutorial(session.exId, session.levelIdx);
+});
+
+/* ============================= HAND TRACKING ENGINE ============================= */
+
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const hudHint = document.getElementById('hudHint');
+const hudTime = document.getElementById('hudTime');
+const hudScore = document.getElementById('hudScore');
+const hudInstruction = document.getElementById('hudInstruction');
+const hudProgress = document.getElementById('hudProgress');
+const hudToast = document.getElementById('hudToast');
+const stopCameraBtn = document.getElementById('stopCameraBtn');
+
+const CONNECTIONS = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [5,9],[9,10],[10,11],[11,12],
+  [9,13],[13,14],[14,15],[15,16],
+  [13,17],[17,18],[18,19],[19,20],
+  [0,17]
+];
+
+let mpHands = null, mpCamera = null, cameraActive = false;
+let session = null;
+let toastTimer = null;
+
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width; canvas.height = rect.height;
+}
+function mirror(lm){ return lm.map(p=>({x:1-p.x, y:p.y, z:p.z})); }
+function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+
+function drawSkeleton(m,w,h){
+  ctx.strokeStyle = 'rgba(23,195,178,0.9)';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for(const [a,b] of CONNECTIONS){
+    ctx.moveTo(m[a].x*w, m[a].y*h);
+    ctx.lineTo(m[b].x*w, m[b].y*h);
+  }
+  ctx.stroke();
+  ctx.fillStyle = '#FFB020';
+  for(const p of m){ ctx.beginPath(); ctx.arc(p.x*w, p.y*h, 4, 0, Math.PI*2); ctx.fill(); }
+}
+
+function handMetrics(m){
+  const handSize = dist(m[0], m[9]) || 0.001;
+  const pinchDist = dist(m[4], m[8]) / handSize;
+  const tips = [4,8,12,16,20];
+  const avgTip = tips.reduce((a,i)=>a+dist(m[i], m[0]),0) / tips.length;
+  const fistRatio = avgTip / handSize;
+  return { handSize, pinchDist, fistRatio, indexTip: m[8], thumbTip: m[4] };
+}
+
+function onResults(results){
+  resizeCanvas();
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.save(); ctx.translate(w,0); ctx.scale(-1,1);
+  ctx.drawImage(results.image, 0,0,w,h);
+  ctx.restore();
+
+  let hands = [];
+  if(results.multiHandLandmarks){
+    for(const lm of results.multiHandLandmarks) hands.push(mirror(lm));
+  }
+  for(const m of hands) drawSkeleton(m,w,h);
+
+  if(currentScreen==='play' && session && !session.ended){
+    updateSession(hands, w, h);
+  }
+}
+
+async function startCameraFeed(){
+  document.getElementById('startCameraBtn').disabled = true;
+  try{
+    mpHands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+    mpHands.setOptions({ maxNumHands:1, modelComplexity:1, minDetectionConfidence:0.6, minTrackingConfidence:0.6 });
+    mpHands.onResults(onResults);
+    mpCamera = new Camera(video, {
+      onFrame: async ()=>{ await mpHands.send({image: video}); },
+      width:640, height:480
+    });
+    await mpCamera.start();
+    cameraActive = true;
+    hudHint.style.display = 'none';
+    stopCameraBtn.style.display = 'inline-flex';
+    beginSessionClock();
+  }catch(err){
+    console.error(err);
+    hudHint.querySelector('p').textContent = 'Camera unavailable — check permissions and try again.';
+    document.getElementById('startCameraBtn').disabled = false;
+  }
+}
+function stopCameraFeed(){
+  if(mpCamera){ mpCamera.stop(); mpCamera = null; }
+  if(mpHands){ mpHands.close(); mpHands = null; }
+  cameraActive = false;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  hudHint.style.display = 'flex';
+  document.getElementById('startCameraBtn').disabled = false;
+  stopCameraBtn.style.display = 'none';
+}
+document.getElementById('startCameraBtn').addEventListener('click', startCameraFeed);
+stopCameraBtn.addEventListener('click', ()=>{ if(session) endSession('manual'); });
+
+/* ============================= GAMEPLAY ============================= */
+
+function buildPath(level){
+  const n = 46, pts=[];
+  for(let i=0;i<n;i++){
+    const t = i/(n-1);
+    pts.push({ x: 0.18 + t*0.64, y: 0.5 + Math.sin(t*Math.PI*2*level.freq)*level.amp });
+  }
+  return pts;
+}
+function randTargetPos(){
+  return { x: 0.25 + Math.random()*0.5, y: 0.28 + Math.random()*0.42 };
+}
+const TOUCH_POINTS = [ {x:0.3,y:0.32}, {x:0.7,y:0.32}, {x:0.5,y:0.68}, {x:0.25,y:0.62}, {x:0.75,y:0.62} ];
+
+function beginPlay(exId, levelIdx){
+  const ex = EXERCISES.find(e=>e.id===exId);
+  const level = ex.levels[levelIdx];
+  session = {
+    exId, levelIdx, ex, level,
+    startTime: null, timeLimit: level.timeLimit*1000,
+    reps:0, misses:0, targetReps: level.targetReps||null,
+    pathPoints: exId==='trace' ? buildPath(level) : null, pathIndex:0,
+    pinchClosed:false, fistClosed:false,
+    targetPos: exId==='grab' ? randTargetPos() : null,
+    touchIdx:-1, touchDeadline:0,
+    ended:false, clockStarted:false,
+  };
+  hudInstruction.textContent = ex.instruction;
+  hudScore.textContent = '0';
+  hudTime.textContent = fmtTime(level.timeLimit*1000);
+  hudProgress.textContent = progressLabel();
+  hudHint.querySelector('p').textContent = "Uses your camera. Position your hand so it's fully visible, then start.";
+  document.getElementById('startCameraBtn').disabled = false;
+  hudHint.style.display = 'flex';
+  stopCameraBtn.style.display = 'none';
+  if(exId==='touch') nextTouchTarget();
+  goTo('play');
+}
+
+function progressLabel(){
+  if(!session) return '';
+  if(session.exId==='trace') return Math.round(100*session.pathIndex/session.pathPoints.length) + '% traced';
+  return session.reps + ' / ' + session.targetReps;
+}
+
+function beginSessionClock(){
+  session.startTime = performance.now();
+  session.clockStarted = true;
+}
+
+function fmtTime(ms){
+  const s = Math.max(0, Math.ceil(ms/1000));
+  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+
+function showToast(text, isMiss){
+  hudToast.textContent = text;
+  hudToast.classList.remove('miss');
+  if(isMiss) hudToast.classList.add('miss');
+  hudToast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> hudToast.classList.remove('show'), 900);
+}
+
+function updateSession(hands, w, h){
+  if(!session.clockStarted) return;
+  const elapsed = performance.now() - session.startTime;
+  const remaining = session.timeLimit - elapsed;
+  hudTime.textContent = fmtTime(remaining);
+  if(remaining<=0){ endSession('time'); return; }
+
+  const m = hands[0];
+  if(!m){
+    drawNoHandNotice(w,h);
+  } else {
+    const metrics = handMetrics(m);
+    switch(session.exId){
+      case 'grab': updateGrab(metrics, w, h); break;
+      case 'pinch': updatePinch(metrics, w, h); break;
+      case 'touch': updateTouch(metrics, w, h); break;
+      case 'trace': updateTrace(metrics, w, h); break;
+      case 'squeeze': updateSqueeze(metrics, w, h); break;
+    }
+  }
+  hudScore.textContent = session.reps;
+  hudProgress.textContent = progressLabel();
+}
+
+function drawNoHandNotice(w,h){
+  ctx.fillStyle = 'rgba(20,18,28,0.55)';
+  ctx.fillRect(0,0,w,h);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = "14px 'IBM Plex Sans', sans-serif";
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('Hand not detected — bring it fully into frame', w/2, h/2);
+}
+
+function drawTargetCircle(pos, w, h, radiusFrac, color){
+  ctx.beginPath();
+  ctx.arc(pos.x*w, pos.y*h, radiusFrac*Math.min(w,h), 0, Math.PI*2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+  ctx.stroke();
+}
+
+/* -- Object Grab -- */
+function updateGrab(mx, w, h){
+  const level = session.level;
+  drawTargetCircle(session.targetPos, w, h, level.radius, 'rgba(61,169,252,0.6)');
+  const tip = { x: mx.indexTip.x, y: mx.indexTip.y };
+  const near = dist(tip, session.targetPos) < level.radius*1.1;
+  const pinched = mx.pinchDist < 0.42;
+  if(near && pinched){
+    session.reps++;
+    showToast('Grabbed! ' + session.reps + '/' + session.targetReps, false);
+    if(session.reps>=session.targetReps){ endSession('complete'); return; }
+    session.targetPos = randTargetPos();
+  }
+}
+
+/* -- Pinch Exercise -- */
+function updatePinch(mx, w, h){
+  const closed = mx.pinchDist < 0.42;
+  const open = mx.pinchDist > 0.75;
+  const scale = Math.max(0.5, Math.min(1, mx.pinchDist/0.9));
+  ctx.beginPath();
+  ctx.arc(w*0.5, h*0.45, 0.11*Math.min(w,h)*scale, 0, Math.PI*2);
+  ctx.fillStyle = session.pinchClosed ? 'rgba(255,122,69,0.6)' : 'rgba(20,184,127,0.55)';
+  ctx.fill();
+  if(closed && !session.pinchClosed) session.pinchClosed = true;
+  if(open && session.pinchClosed){
+    session.pinchClosed = false;
+    session.reps++;
+    showToast('Rep ' + session.reps + '/' + session.targetReps, false);
+    if(session.reps>=session.targetReps){ endSession('complete'); return; }
+  }
+}
+
+/* -- Finger Touch -- */
+function nextTouchTarget(){
+  let idx;
+  do{ idx = Math.floor(Math.random()*TOUCH_POINTS.length); } while(idx===session.touchIdx);
+  session.touchIdx = idx;
+  session.touchDeadline = performance.now() + session.level.dotTimeout;
+}
+function updateTouch(mx, w, h){
+  if(session.touchIdx<0) nextTouchTarget();
+  const pos = TOUCH_POINTS[session.touchIdx];
+  const pulse = 0.5 + 0.5*Math.sin(performance.now()/160);
+  drawTargetCircle(pos, w, h, session.level.radius*(0.9+0.15*pulse), 'rgba(20,184,127,0.65)');
+
+  const tip = { x: mx.indexTip.x, y: mx.indexTip.y };
+  const hit = dist(tip, pos) < session.level.radius*1.1;
+  if(hit){
+    session.reps++;
+    showToast('Nice! ' + session.reps + '/' + session.targetReps, false);
+    if(session.reps>=session.targetReps){ endSession('complete'); return; }
+    nextTouchTarget();
+  } else if(performance.now() > session.touchDeadline){
+    session.misses++;
+    showToast('Missed', true);
+    nextTouchTarget();
+  }
+}
+
+/* -- Path Trace -- */
+function updateTrace(mx, w, h){
+  const pts = session.pathPoints;
+  ctx.beginPath();
+  pts.forEach((p,i)=> i===0 ? ctx.moveTo(p.x*w,p.y*h) : ctx.lineTo(p.x*w,p.y*h));
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = 6; ctx.lineCap='round'; ctx.stroke();
+
+  if(session.pathIndex>0){
+    ctx.beginPath();
+    for(let i=0;i<session.pathIndex && i<pts.length;i++){
+      const p = pts[i]; i===0 ? ctx.moveTo(p.x*w,p.y*h) : ctx.lineTo(p.x*w,p.y*h);
+    }
+    ctx.strokeStyle = 'rgba(20,184,127,0.9)';
+    ctx.lineWidth = 6; ctx.lineCap='round'; ctx.stroke();
+  }
+
+  const tip = { x: mx.indexTip.x, y: mx.indexTip.y };
+  if(session.pathIndex < pts.length){
+    const target = pts[session.pathIndex];
+    ctx.beginPath(); ctx.arc(target.x*w, target.y*h, 8, 0, Math.PI*2);
+    ctx.fillStyle = '#FFD93D'; ctx.fill();
+    if(dist(tip, target) < session.level.tolerance) session.pathIndex++;
+  }
+  if(session.pathIndex >= pts.length){ endSession('complete'); }
+}
+
+/* -- Ball Squeeze -- */
+function updateSqueeze(mx, w, h){
+  const closed = mx.fistRatio < 1.0;
+  const open = mx.fistRatio > 1.35;
+  const scale = Math.max(0.55, Math.min(1, mx.fistRatio/1.6));
+  ctx.beginPath();
+  ctx.arc(w*0.5, h*0.45, 0.13*Math.min(w,h)*scale, 0, Math.PI*2);
+  ctx.fillStyle = session.fistClosed ? 'rgba(255,122,69,0.6)' : 'rgba(61,169,252,0.55)';
+  ctx.fill();
+  if(closed && !session.fistClosed) session.fistClosed = true;
+  if(open && session.fistClosed){
+    session.fistClosed = false;
+    session.reps++;
+    showToast('Rep ' + session.reps + '/' + session.targetReps, false);
+    if(session.reps>=session.targetReps){ endSession('complete'); return; }
+  }
+}
+
+/* ============================= RESULTS ============================= */
+
+function endSession(reason){
+  if(!session || session.ended) return;
+  session.ended = true;
+  stopCameraFeed();
+
+  let ratio;
+  if(session.exId==='trace') ratio = session.pathIndex/session.pathPoints.length;
+  else ratio = session.targetReps ? Math.min(1, session.reps/session.targetReps) : 0;
+  const score = Math.round(ratio*100);
+
+  let accuracy;
+  if(session.exId==='touch'){
+    const attempts = session.reps + session.misses;
+    accuracy = attempts ? Math.round(100*session.reps/attempts) : 0;
+  } else {
+    accuracy = score;
+  }
+
+  const timeTaken = session.startTime ? (performance.now()-session.startTime) : 0;
+
+  progress.sessions = progress.sessions || [];
+  progress.sessions.push({ date: Date.now(), exId: session.exId, levelIdx: session.levelIdx, score, accuracy });
+  if(progress.sessions.length>30) progress.sessions = progress.sessions.slice(-30);
+  progress.bestByExercise = progress.bestByExercise || {};
+  const prevBest = progress.bestByExercise[session.exId];
+  if(!prevBest || score > prevBest.score) progress.bestByExercise[session.exId] = { score, levelIdx: session.levelIdx };
+  saveProgress(progress);
+
+  renderResults(score, accuracy, timeTaken, reason);
+  goTo('results');
+  if(score>=70) launchConfetti();
+}
+
+function renderResults(score, accuracy, timeTaken, reason){
+  const status = statusForScore(score);
+  const badge = document.getElementById('resultBadge');
+  badge.textContent = status.label;
+  badge.className = 'result-badge badge ' + status.cls;
+  document.getElementById('resultScore').textContent = score;
+  document.getElementById('resultSub').textContent = session.ex.name + ' · ' + session.level.label;
+  document.getElementById('resultReps').textContent = session.exId==='trace'
+    ? Math.round(100*session.pathIndex/session.pathPoints.length)+'%'
+    : session.reps + '/' + (session.targetReps||'-');
+  document.getElementById('resultAccuracy').textContent = accuracy + '%';
+  document.getElementById('resultTime').textContent = fmtTime(Math.max(0,timeTaken)).replace('00:','0:');
+
+  const tier = score>=80 ? 'high' : score>=50 ? 'mid' : 'low';
+  const tierTips = TIPS[session.exId][tier];
+  const generalTip = GENERAL_TIPS[progress.sessions.length % GENERAL_TIPS.length];
+  const tips = [...tierTips.slice(0,2), generalTip];
+  const list = document.getElementById('tipsList');
+  list.innerHTML = tips.map(t=>`<li>${t}</li>`).join('');
+
+  const nextBtn = document.getElementById('nextLevelBtn');
+  const hasNext = session.levelIdx+1 < session.ex.levels.length;
+  if(hasNext && score>=70){
+    nextBtn.style.display = 'inline-flex';
+    nextBtn.onclick = ()=> beginPlay(session.exId, session.levelIdx+1);
+  } else {
+    nextBtn.style.display = 'none';
+  }
+  document.getElementById('retryBtn').onclick = ()=> beginPlay(session.exId, session.levelIdx);
+
+  document.getElementById('capturePhotoBtn').onclick = ()=>{
+    pendingPhotoTag = {
+      exId: session.exId, levelIdx: session.levelIdx,
+      exName: session.ex.name, levelLabel: session.level.label
+    };
+    goTo('photobooth');
+  };
+}
+
+function launchConfetti(){
+  const colors = ['#FF7A45','#FFD93D','#14B87F','#3DA9FC','#9B7BFF','#FF6FA5'];
+  for(let i=0;i<24;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const size = 6 + Math.random()*6;
+    el.style.width = size+'px';
+    el.style.height = (size*0.6)+'px';
+    el.style.left = Math.random()*100+'vw';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDuration = (1.8 + Math.random()*1.4)+'s';
+    el.style.animationDelay = (Math.random()*0.3)+'s';
+    document.body.appendChild(el);
+    setTimeout(()=> el.remove(), 3600);
+  }
+}
+
+/* ============================= PROFILE ============================= */
+
+function renderProfile(){
+  if(!profile) return;
+  document.getElementById('profileName').textContent = profile.name;
+
+  const mastered = masteredExercises();
+  document.getElementById('profileRank').textContent = rankTitle(mastered) + ' · ' + mastered + '/5 mastered';
+
+  const conquered = levelsConquered();
+  document.getElementById('xpText').textContent = conquered + '/' + TOTAL_LEVELS;
+  document.getElementById('xpFill').style.width = Math.round(100*conquered/TOTAL_LEVELS) + '%';
+
+  const best = progress.bestByExercise || {};
+  document.querySelectorAll('.gear-badge').forEach(badge=>{
+    const exId = badge.dataset.ex;
+    const b = best[exId];
+    badge.classList.toggle('mastered', !!(b && b.score>=70));
+  });
+
+  const sessions = progress.sessions || [];
+  document.getElementById('statSessions').textContent = sessions.length;
+  const triedCount = Object.keys(best).length;
+  document.getElementById('statTried').textContent = triedCount + '/' + EXERCISES.length;
+
+  const recent = sessions.slice(-10);
+  const avgScore = recent.length ? Math.round(recent.reduce((a,s)=>a+s.score,0)/recent.length) : 0;
+  const avgAcc = recent.length ? Math.round(recent.reduce((a,s)=>a+s.accuracy,0)/recent.length) : null;
+  document.getElementById('statAccuracy').textContent = avgAcc===null ? '--' : avgAcc+'%';
+  document.getElementById('ringLabel').textContent = recent.length ? 'last '+recent.length+' sessions' : 'no sessions yet';
+  drawRing(avgScore);
+  drawProgressChart(recent);
+  document.getElementById('recommendText').textContent = buildRecommendation(sessions, avgScore);
+
+  renderLevelBreakdown();
+}
+
+function drawRing(score){
+  const c = document.getElementById('scoreRing');
+  const rctx = c.getContext('2d');
+  const w=c.width, h=c.height, cx=w/2, cy=h/2, r=60;
+  rctx.clearRect(0,0,w,h);
+  rctx.lineWidth = 12;
+  rctx.strokeStyle = '#FBDEB8';
+  rctx.beginPath(); rctx.arc(cx,cy,r,0,Math.PI*2); rctx.stroke();
+  const pct = Math.max(0,Math.min(1,score/100));
+  rctx.strokeStyle = score>=70 ? '#14B87F' : score>=45 ? '#FFB020' : '#FF7A45';
+  rctx.lineCap = 'round';
+  rctx.beginPath(); rctx.arc(cx,cy,r,-Math.PI/2, -Math.PI/2 + pct*Math.PI*2); rctx.stroke();
+  rctx.fillStyle = '#2E2A3D';
+  rctx.font = "800 26px 'Baloo 2', sans-serif";
+  rctx.textAlign = 'center'; rctx.textBaseline = 'middle';
+  rctx.fillText(score+'%', cx, cy);
+}
+
+function drawProgressChart(sessions){
+  const c = document.getElementById('progressChart');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = c.getBoundingClientRect();
+  c.width = rect.width*dpr; c.height = 220*dpr;
+  const cctx = c.getContext('2d');
+  cctx.setTransform(dpr,0,0,dpr,0,0);
+  const w = rect.width, h = 220;
+  cctx.clearRect(0,0,w,h);
+  const padL=32, padR=12, padT=14, padB=24;
+  const plotW = w-padL-padR, plotH = h-padT-padB;
+
+  cctx.strokeStyle = '#FBDEB8'; cctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y = padT + plotH*i/4;
+    cctx.beginPath(); cctx.moveTo(padL,y); cctx.lineTo(w-padR,y); cctx.stroke();
+    cctx.fillStyle = '#8B8398'; cctx.font = "10px 'IBM Plex Mono', monospace";
+    cctx.textAlign='right'; cctx.textBaseline='middle';
+    cctx.fillText(String(100-i*25), padL-6, y);
+  }
+
+  if(sessions.length < 1){
+    cctx.fillStyle = '#8B8398'; cctx.font = "13px 'IBM Plex Sans', sans-serif";
+    cctx.textAlign='center'; cctx.textBaseline='middle';
+    cctx.fillText('Play an exercise to start tracking progress', w/2, h/2);
+    return;
+  }
+
+  const n = sessions.length;
+  const pts = sessions.map((s,i)=>({
+    x: n===1 ? padL+plotW/2 : padL + plotW*i/(n-1),
+    y: padT + plotH*(1-Math.max(0,Math.min(100,s.score))/100)
+  }));
+
+  cctx.strokeStyle = '#14B87F'; cctx.lineWidth = 2.4;
+  cctx.beginPath();
+  pts.forEach((p,i)=> i===0 ? cctx.moveTo(p.x,p.y) : cctx.lineTo(p.x,p.y));
+  cctx.stroke();
+
+  cctx.fillStyle = '#14B87F';
+  pts.forEach(p=>{ cctx.beginPath(); cctx.arc(p.x,p.y,3.4,0,Math.PI*2); cctx.fill(); });
+}
+
+function renderLevelBreakdown(){
+  const wrap = document.getElementById('levelBreakdown');
+  wrap.innerHTML = '';
+  const sessions = progress.sessions || [];
+  const photos = progress.photos || {};
+
+  for(const ex of EXERCISES){
+    const group = document.createElement('div');
+    group.className = 'lb-group';
+    group.innerHTML = `<div class="lb-group-head"><span>${ex.icon}</span>${ex.name}</div>`;
+
+    ex.levels.forEach((lvl, idx)=>{
+      const key = ex.id + '_' + idx;
+      const levelSessions = sessions.filter(s=>s.exId===ex.id && s.levelIdx===idx);
+      const bestScore = levelSessions.length ? Math.max(...levelSessions.map(s=>s.score)) : null;
+      const photo = photos[key];
+
+      const row = document.createElement('div');
+      row.className = 'lb-row';
+      row.innerHTML = `
+        <div class="lb-thumb">${photo ? `<img src="${photo.dataUrl}" alt="Victory photo">` : '🔒'}</div>
+        <div class="lb-mid">
+          <div class="n">${lvl.label}</div>
+          <div class="s">${bestScore===null ? 'Not attempted yet' : 'Best score: '+bestScore+' pts · '+levelSessions.length+' attempt'+(levelSessions.length===1?'':'s')}</div>
+        </div>
+        ${bestScore!==null ? `<span class="badge ${statusForScore(bestScore).cls}">${statusForScore(bestScore).label}</span>` : ''}
+      `;
+      group.appendChild(row);
+    });
+    wrap.appendChild(group);
+  }
+}
+
+/* ============================= PHOTOBOOTH ============================= */
+
+const boothVideo = document.getElementById('boothVideo');
+const boothCanvas = document.getElementById('boothCanvas');
+let boothStream = null, boothActive = false;
+let pendingPhotoTag = null;
+let lastCapturedDataUrl = null;
+
+function renderPhotobooth(){
+  const ctxBox = document.getElementById('boothContext');
+  if(pendingPhotoTag){
+    ctxBox.style.display = 'block';
+    ctxBox.innerHTML = `🎉 Nice work on <b>${pendingPhotoTag.exName} · ${pendingPhotoTag.levelLabel}</b>! Capture a victory photo to save on your profile.`;
+  } else {
+    ctxBox.style.display = 'none';
+  }
+  document.getElementById('boothCaptureArea').style.display = 'block';
+  document.getElementById('boothPreviewArea').style.display = 'none';
+  renderGallery();
+}
+
+document.getElementById('boothStartBtn').addEventListener('click', startBooth);
+document.getElementById('boothStopBtn').addEventListener('click', stopBooth);
+document.getElementById('boothSnapBtn').addEventListener('click', snapPhoto);
+document.getElementById('boothRetakeBtn').addEventListener('click', ()=>{
+  document.getElementById('boothPreviewArea').style.display = 'none';
+  document.getElementById('boothCaptureArea').style.display = 'block';
+  if(!boothActive) startBooth();
+});
+document.getElementById('boothSaveBtn').addEventListener('click', savePhoto);
+
+async function startBooth(){
+  try{
+    boothStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user' } });
+    boothVideo.srcObject = boothStream;
+    boothActive = true;
+    document.getElementById('boothStartBtn').style.display = 'none';
+    document.getElementById('boothSnapBtn').style.display = 'inline-flex';
+    document.getElementById('boothStopBtn').style.display = 'inline-flex';
+  }catch(err){
+    console.error(err);
+    alert('Camera unavailable — check permissions and try again.');
+  }
+}
+function stopBooth(){
+  if(boothStream){ boothStream.getTracks().forEach(t=>t.stop()); boothStream = null; }
+  boothActive = false;
+  document.getElementById('boothStartBtn').style.display = 'inline-flex';
+  document.getElementById('boothSnapBtn').style.display = 'none';
+  document.getElementById('boothStopBtn').style.display = 'none';
+}
+
+function snapPhoto(){
+  const w = 480, h = 360;
+  boothCanvas.width = w; boothCanvas.height = h;
+  const bctx = boothCanvas.getContext('2d');
+  bctx.save();
+  bctx.translate(w,0); bctx.scale(-1,1);
+  bctx.drawImage(boothVideo, 0, 0, w, h);
+  bctx.restore();
+
+  bctx.font = "700 15px 'Baloo 2', sans-serif";
+  bctx.fillStyle = 'rgba(0,0,0,0.45)';
+  bctx.fillRect(0, h-30, w, 30);
+  bctx.fillStyle = '#fff';
+  bctx.textAlign = 'left'; bctx.textBaseline='middle';
+  const label = pendingPhotoTag ? (pendingPhotoTag.exName + ' · ' + pendingPhotoTag.levelLabel) : 'V-Hab · Free shot';
+  bctx.fillText('🏆 ' + label, 12, h-15);
+
+  lastCapturedDataUrl = boothCanvas.toDataURL('image/jpeg', 0.82);
+  document.getElementById('boothPreviewImg').src = lastCapturedDataUrl;
+  document.getElementById('boothCaptureArea').style.display = 'none';
+  document.getElementById('boothPreviewArea').style.display = 'block';
+  stopBooth();
+}
+
+function savePhoto(){
+  if(!lastCapturedDataUrl) return;
+  progress.photos = progress.photos || {};
+  progress.freePhotos = progress.freePhotos || [];
+
+  if(pendingPhotoTag){
+    const key = pendingPhotoTag.exId + '_' + pendingPhotoTag.levelIdx;
+    progress.photos[key] = {
+      dataUrl: lastCapturedDataUrl, date: Date.now(),
+      exName: pendingPhotoTag.exName, levelLabel: pendingPhotoTag.levelLabel
+    };
+  } else {
+    progress.freePhotos.unshift({ dataUrl: lastCapturedDataUrl, date: Date.now() });
+    if(progress.freePhotos.length>12) progress.freePhotos = progress.freePhotos.slice(0,12);
+  }
+  saveProgress(progress);
+  pendingPhotoTag = null;
+  lastCapturedDataUrl = null;
+  renderPhotobooth();
+}
+
+function renderGallery(){
+  const wrap = document.getElementById('galleryWrap');
+  const photos = progress.photos || {};
+  const free = progress.freePhotos || [];
+  const items = [];
+
+  for(const ex of EXERCISES){
+    ex.levels.forEach((lvl, idx)=>{
+      const p = photos[ex.id+'_'+idx];
+      if(p) items.push({ dataUrl: p.dataUrl, label: ex.name+' · '+lvl.label, date: p.date });
+    });
+  }
+  free.forEach(p=> items.push({ dataUrl: p.dataUrl, label: 'Free shot', date: p.date }));
+  items.sort((a,b)=> b.date-a.date);
+
+  if(!items.length){
+    wrap.innerHTML = '<div class="empty-note">No photos yet — capture one above after finishing a level, or take a free shot right now.</div>';
+    return;
+  }
+  wrap.innerHTML = `<div class="gallery-grid">${items.map(it=>`
+    <div class="gallery-item">
+      <img src="${it.dataUrl}" alt="${it.label}">
+      <div class="gi-label">${it.label}</div>
+    </div>
+  `).join('')}</div>`;
+}
+
+/* ============================= INIT ============================= */
+
+goTo('login');
+
+})();
+</script>
+</body>
+</html>
