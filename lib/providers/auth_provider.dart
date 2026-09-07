@@ -33,14 +33,7 @@ class AuthProvider extends ChangeNotifier {
         if (user.id == currentId) _currentUser = user;
       }
     }
-    final roleStr = _storage.getUserRole();
-    if (roleStr == 'therapist') {
-      _currentRole = UserRole.therapist;
-    } else if (roleStr == 'patient') {
-      _currentRole = UserRole.patient;
-    } else {
-      _currentRole = null; // show welcome screen
-    }
+    _currentRole = null;
     _activePatientId = _storage.getActivePatientId();
     if (_currentUser != null) {
       _currentRole = _currentUser!.role == AppUserRole.patient
