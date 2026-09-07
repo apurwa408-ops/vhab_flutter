@@ -1,14 +1,11 @@
 {
   "version": 2,
+  "outputDirectory": "build/web",
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/",
-      "destination": "/build/web/index.html"
-    },
-    {
       "source": "/(.*)",
-      "destination": "/build/web/$1"
+      "destination": "/index.html"
     }
   ]
 }
