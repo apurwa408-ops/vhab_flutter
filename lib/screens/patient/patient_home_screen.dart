@@ -7,6 +7,7 @@ import '../../providers/exercise_provider.dart';
 import '../../providers/patient_provider.dart';
 import '../../widgets/common/custom_card.dart';
 import '../../widgets/common/stat_badge.dart';
+import '../../widgets/common/rehab_motion_panel.dart';
 import 'exercise/level_selection_screen.dart';
 import 'exercise/tutorial_screen.dart';
 
@@ -218,6 +219,10 @@ class PatientHomeScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
+              _buildMotionPracticePanel(context),
+
+              const SizedBox(height: 24),
+
               // KPI Stats Row: Accuracy 87%, Sessions 12, Current Level 8, Streak 5 days
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -310,6 +315,131 @@ class PatientHomeScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMotionPracticePanel(BuildContext context) {
+    return Container(
+      height: 188,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF071A31), Color(0xFF172554)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.deepNavy.withOpacity(0.22),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: SizedBox(
+                  width: 310,
+                  child: RehabMotionPanel(),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(22),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 370),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: AppColors.cyan.withOpacity(0.16),
+                          borderRadius: BorderRadius.circular(9),
+                        ),
+                        child: const Icon(Icons.pan_tool_alt_rounded,
+                            color: AppColors.cyan, size: 17),
+                      ),
+                      const SizedBox(width: 9),
+                      Text(
+                        'MOTION LAB',
+                        style: GoogleFonts.inter(
+                          color: AppColors.cyan,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Warm up your hand\nwith precise movement.',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      height: 1.05,
+                    ),
+                  ),
+                  const SizedBox(height: 9),
+                  Text(
+                    'Your next exercise adapts to your control, stability, and pace.',
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withOpacity(0.68),
+                      fontSize: 11,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            right: 18,
+            bottom: 16,
+            child: Row(
+              children: [
+                _buildTelemetryChip(Icons.sensors_rounded, 'TRACKING'),
+                const SizedBox(width: 6),
+                _buildTelemetryChip(Icons.auto_graph_rounded, 'ADAPTIVE'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTelemetryChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withOpacity(0.12)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: AppColors.success, size: 12),
+          const SizedBox(width: 4),
+          Text(label,
+              style: GoogleFonts.inter(
+                  color: Colors.white.withOpacity(0.75),
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }

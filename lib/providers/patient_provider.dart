@@ -37,7 +37,12 @@ class PatientProvider extends ChangeNotifier {
       (p) => p.id == activeId,
       orElse: () => patients.isNotEmpty
           ? patients.first
-          : const Patient(id: 'p1', name: 'Rahul Sharma', age: 48, condition: 'Post-Stroke Recovery'),
+          : const Patient(
+              id: 'new-patient',
+              name: 'Your profile',
+              age: 0,
+              condition: 'Rehabilitation program',
+            ),
     );
 
     _sessionHistory = _storage.getSessionHistory(patientId: activeId);

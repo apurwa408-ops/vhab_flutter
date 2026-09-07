@@ -86,6 +86,7 @@ class _ShapeDragGameState extends State<ShapeDragGame> {
   int _elapsedSeconds = 0;
   Timer? _gameTimer;
   bool _isGameOver = false;
+  bool _gameHasStarted = false;
 
   bool _wasPinching = false;
   Size _cachedBounds = const Size(800, 600);
@@ -101,6 +102,7 @@ class _ShapeDragGameState extends State<ShapeDragGame> {
 
   void _onCameraFrame() {
     if (!mounted || _isGameOver || !_inputService.isHandDetected) return;
+    _gameHasStarted = true;
 
     final pos = _inputService.normalizedPosition;
     final localPos = Offset(
@@ -160,7 +162,7 @@ class _ShapeDragGameState extends State<ShapeDragGame> {
 
   void _startGameTimer() {
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) return;
+      if (!mounted || !_gameHasStarted) return;
       setState(() => _elapsedSeconds++);
     });
   }

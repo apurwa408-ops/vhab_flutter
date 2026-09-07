@@ -1,5 +1,6 @@
 class Patient {
   final String id;
+  final String email;
   final String name;
   final int age;
   final String condition;
@@ -14,6 +15,7 @@ class Patient {
 
   const Patient({
     required this.id,
+    this.email = '',
     required this.name,
     required this.age,
     required this.condition,
@@ -36,6 +38,7 @@ class Patient {
 
   Patient copyWith({
     String? id,
+    String? email,
     String? name,
     int? age,
     String? condition,
@@ -50,6 +53,7 @@ class Patient {
   }) {
     return Patient(
       id: id ?? this.id,
+      email: email ?? this.email,
       name: name ?? this.name,
       age: age ?? this.age,
       condition: condition ?? this.condition,
@@ -67,6 +71,7 @@ class Patient {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+      'email': email,
         'name': name,
         'age': age,
         'condition': condition,
@@ -83,6 +88,7 @@ class Patient {
   factory Patient.fromJson(Map<String, dynamic> json) {
     return Patient(
       id: json['id'] as String? ?? 'p1',
+      email: json['email'] as String? ?? '',
       name: json['name'] as String? ?? 'Patient',
       age: (json['age'] as num?)?.toInt() ?? 45,
       condition: json['condition'] as String? ?? 'Post-Stroke Recovery',

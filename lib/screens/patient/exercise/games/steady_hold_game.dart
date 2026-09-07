@@ -46,6 +46,7 @@ class _SteadyHoldGameState extends State<SteadyHoldGame>
   Timer? _holdTickTimer;
 
   bool _isHolding = false;
+  bool _gameHasStarted = false;
   double _currentHoldMilliseconds = 0;
   final ValueNotifier<double> _holdProgressNotifier = ValueNotifier(0.0);
   bool _isGameOver = false;
@@ -69,6 +70,7 @@ class _SteadyHoldGameState extends State<SteadyHoldGame>
 
   void _onCameraFrame() {
     if (!mounted || _isGameOver || !_inputService.isHandDetected) return;
+    _gameHasStarted = true;
     final pos = _inputService.normalizedPosition;
     final localPos = Offset(
       pos.dx * _cachedBounds.width,
@@ -96,7 +98,7 @@ class _SteadyHoldGameState extends State<SteadyHoldGame>
 
   void _startGameTimer() {
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) return;
+      if (!mounted || !_gameHasStarted) return;
       setState(() => _elapsedGameSeconds++);
     });
   }

@@ -41,6 +41,7 @@ class _PathTraceGameState extends State<PathTraceGame> {
   bool _isTracing = false;
   bool _hasStarted = false;
   bool _isGameOver = false;
+  bool _gameHasStarted = false;
 
   int _score = 0;
   int _offPathErrors = 0;
@@ -62,6 +63,7 @@ class _PathTraceGameState extends State<PathTraceGame> {
 
   void _onCameraFrame() {
     if (!mounted || _isGameOver || !_inputService.isHandDetected || _referenceWaypoints.isEmpty) return;
+    _gameHasStarted = true;
 
     final pos = _inputService.normalizedPosition;
     final localPos = Offset(
@@ -84,7 +86,7 @@ class _PathTraceGameState extends State<PathTraceGame> {
 
   void _startGameTimer() {
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) return;
+      if (!mounted || !_gameHasStarted) return;
       setState(() => _elapsedSeconds++);
     });
   }

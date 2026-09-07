@@ -15,7 +15,8 @@
   const posHistory = [];
   const MAX_HISTORY = 15;
   let lastProcessTime = 0;
-  const PROCESS_INTERVAL_MS = 50; // 20fps cap – keeps UI thread free
+  const PROCESS_INTERVAL_MS = 33; // Up to 30fps, with an in-flight guard below
+  let isProcessingFrame = false;
 
   function initCameraElements() {
     if (!videoElement) {
@@ -275,10 +276,15 @@
           cameraInstance = new window.Camera(videoElement, {
             onFrame: async () => {
               const now = Date.now();
-              if (!isRunning || now - lastProcessTime < PROCESS_INTERVAL_MS) return;
+              if (!isRunning || isProcessingFrame || now - lastProcessTime < PROCESS_INTERVAL_MS) return;
               lastProcessTime = now;
+              isProcessingFrame = true;
               if (videoElement && handsInstance) {
-                await handsInstance.send({ image: videoElement });
+                try {
+                  await handsInstance.send({ image: videoElement });
+                } finally {
+                  isProcessingFrame = false;
+                }
               }
             },
             width: 640,
@@ -296,9 +302,14 @@
           async function processFrame() {
             if (!isRunning) return;
             const now = Date.now();
-            if (videoElement.readyState >= 2 && now - lastProcessTime >= PROCESS_INTERVAL_MS) {
+            if (videoElement.readyState >= 2 && !isProcessingFrame && now - lastProcessTime >= PROCESS_INTERVAL_MS) {
               lastProcessTime = now;
-              await handsInstance.send({ image: videoElement });
+              isProcessingFrame = true;
+              try {
+                await handsInstance.send({ image: videoElement });
+              } finally {
+                isProcessingFrame = false;
+              }
             }
             requestAnimationFrame(processFrame);
           }

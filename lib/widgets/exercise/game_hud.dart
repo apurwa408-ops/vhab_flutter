@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
+import '../../services/audio_feedback_service.dart';
 
-class GameHud extends StatelessWidget {
+class GameHud extends StatefulWidget {
   final String exerciseTitle;
   final int levelNumber;
   final int score;
@@ -34,19 +35,24 @@ class GameHud extends StatelessWidget {
     this.availableLevels,
   });
 
+  @override
+  State<GameHud> createState() => _GameHudState();
+}
+
+class _GameHudState extends State<GameHud> {
   String get _formattedTimer {
-    final m = (elapsedSeconds ~/ 60).toString().padLeft(2, '0');
-    final s = (elapsedSeconds % 60).toString().padLeft(2, '0');
+    final m = (widget.elapsedSeconds ~/ 60).toString().padLeft(2, '0');
+    final s = (widget.elapsedSeconds % 60).toString().padLeft(2, '0');
     return '$m:$s';
   }
 
   @override
   Widget build(BuildContext context) {
-    final progressFraction = totalProgress > 0
-        ? (currentProgress / totalProgress).clamp(0.0, 1.0)
+    final progressFraction = widget.totalProgress > 0
+      ? (widget.currentProgress / widget.totalProgress).clamp(0.0, 1.0)
         : 0.0;
 
-    final levels = availableLevels ?? [1, 2, 3, 4, 5];
+    final levels = widget.availableLevels ?? [1, 2, 3, 4, 5];
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -70,7 +76,7 @@ class GameHud extends StatelessWidget {
             children: [
               // Exit button
               IconButton(
-                onPressed: onExit,
+                onPressed: widget.onExit,
                 icon: const Icon(Icons.close_rounded, size: 20),
                 tooltip: 'Exit Exercise',
                 color: AppColors.textSecondary,
@@ -87,7 +93,7 @@ class GameHud extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    exerciseTitle,
+                    widget.exerciseTitle,
                     style: GoogleFonts.outfit(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -110,7 +116,7 @@ class GameHud extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          'LEVEL $levelNumber',
+                          'LEVEL ${widget.levelNumber}',
                           style: GoogleFonts.inter(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
@@ -118,14 +124,14 @@ class GameHud extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (onSelectLevel != null) ...[
+                      if (widget.onSelectLevel != null) ...[
                         const SizedBox(width: 8),
                         ...levels.map((lvl) {
-                          final isCurrent = lvl == levelNumber;
+                            final isCurrent = lvl == widget.levelNumber;
                           return Padding(
                             padding: const EdgeInsets.only(right: 4),
                             child: InkWell(
-                              onTap: () => onSelectLevel!(lvl),
+                              onTap: () => widget.onSelectLevel!(lvl),
                               borderRadius: BorderRadius.circular(6),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -167,9 +173,21 @@ class GameHud extends StatelessWidget {
               const Spacer(),
 
               // Quick Action: Retry Button
-              if (onRetry != null)
+              IconButton(
+                onPressed: () {
+                  setState(AudioFeedbackService.toggleMuted);
+                },
+                icon: Icon(AudioFeedbackService.isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded, size: 20),
+                tooltip: AudioFeedbackService.isMuted ? 'Play audio' : 'Mute audio',
+                color: AppColors.purple,
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.purple.withOpacity(0.1),
+                  padding: const EdgeInsets.all(8),
+                ),
+              ),
+              if (widget.onRetry != null)
                 IconButton(
-                  onPressed: onRetry,
+                  onPressed: widget.onRetry,
                   icon: const Icon(Icons.refresh_rounded, size: 20),
                   tooltip: 'Retry Level',
                   color: AppColors.cyan,
@@ -180,10 +198,10 @@ class GameHud extends StatelessWidget {
                 ),
 
               // Quick Action: Next Level Button
-              if (onNextLevel != null) ...[
+              if (widget.onNextLevel != null) ...[
                 const SizedBox(width: 6),
                 IconButton(
-                  onPressed: onNextLevel,
+                  onPressed: widget.onNextLevel,
                   icon: const Icon(Icons.skip_next_rounded, size: 20),
                   tooltip: 'Next Level',
                   color: const Color(0xFF10B981),
@@ -199,14 +217,14 @@ class GameHud extends StatelessWidget {
               // Telemetry indicators
               _buildHudItem(
                 label: 'SCORE',
-                value: '$score',
+                value: '${widget.score}',
                 color: AppColors.purple,
                 icon: Icons.star_rounded,
               ),
               const SizedBox(width: 16),
               _buildHudItem(
                 label: 'ACCURACY',
-                value: '${liveAccuracy.toStringAsFixed(0)}%',
+                value: '${widget.liveAccuracy.toStringAsFixed(0)}%',
                 color: AppColors.cyan,
                 icon: Icons.track_changes_rounded,
               ),
@@ -234,7 +252,7 @@ class GameHud extends StatelessWidget {
           child: Row(
             children: [
               Text(
-                '$progressLabel: $currentProgress/$totalProgress',
+                '${widget.progressLabel}: ${widget.currentProgress}/${widget.totalProgress}',
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

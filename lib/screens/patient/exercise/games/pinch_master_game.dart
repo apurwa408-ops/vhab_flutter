@@ -58,6 +58,7 @@ class _PinchMasterGameState extends State<PinchMasterGame> {
   int _elapsedSeconds = 0;
   Timer? _gameTimer;
   bool _isGameOver = false;
+  bool _gameHasStarted = false;
 
   final Random _random = Random();
   double _totalDeviation = 0.0;
@@ -106,6 +107,7 @@ class _PinchMasterGameState extends State<PinchMasterGame> {
     }
 
     if (!_inputService.isHandDetected) return;
+    _gameHasStarted = true;
 
     // ── Input events (only on state change) ──
     final pos = _inputService.normalizedPosition;
@@ -157,7 +159,7 @@ class _PinchMasterGameState extends State<PinchMasterGame> {
 
   void _startGameTimer() {
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) return;
+      if (!mounted || !_gameHasStarted) return;
       setState(() {
         _elapsedSeconds++;
       });

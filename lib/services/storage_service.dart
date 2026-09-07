@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/app_constants.dart';
 import '../models/achievement.dart';
+import '../models/app_user.dart';
 import '../models/patient.dart';
 import '../models/performance.dart';
 import '../models/session.dart';
@@ -15,13 +16,73 @@ class StorageService {
     final prefs = await SharedPreferences.getInstance();
     final service = StorageService(prefs);
     await service._seedInitialDataIfEmpty();
+    await service._removeLegacyRahulDemo();
     return service;
+  }
+
+  Future<void> _removeLegacyRahulDemo() async {
+    final patients = getPatients();
+    final legacyIds = patients
+        .where((patient) =>
+            patient.id == 'p1' || patient.name.toLowerCase() == 'rahul sharma')
+        .map((patient) => patient.id)
+        .toSet();
+    if (legacyIds.isEmpty) return;
+
+    await savePatients(
+      patients.where((patient) => !legacyIds.contains(patient.id)).toList(),
+    );
+
+    final remainingSessions = getSessionHistory()
+        .where((session) => !legacyIds.contains(session.patientId))
+        .toList();
+    await _prefs.setString(
+      AppConstants.keySessionHistory,
+      jsonEncode(remainingSessions.map((session) => session.toJson()).toList()),
+    );
+
+    if (getActivePatientId() == 'p1') {
+      await setActivePatientId('');
+    }
   }
 
   // --- Role Management ---
   String? getUserRole() => _prefs.getString(AppConstants.keyUserRole);
   Future<void> setUserRole(String role) =>
       _prefs.setString(AppConstants.keyUserRole, role);
+
+  List<AppUser> getUsers() {
+    final raw = _prefs.getString(AppConstants.keyUsers);
+    if (raw == null) return [];
+    try {
+      final list = jsonDecode(raw) as List<dynamic>;
+      return list
+          .map((item) => AppUser.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveUsers(List<AppUser> users) async {
+    await _prefs.setString(
+      AppConstants.keyUsers,
+      jsonEncode(users.map((user) => user.toJson()).toList()),
+    );
+  }
+
+  AppUser? findUserByEmail(String email) {
+    final normalized = email.trim().toLowerCase();
+    for (final user in getUsers()) {
+      if (user.email.toLowerCase() == normalized) return user;
+    }
+    return null;
+  }
+
+  Future<void> setCurrentUserId(String id) =>
+      _prefs.setString(AppConstants.keyCurrentUserId, id);
+
+  String? getCurrentUserId() => _prefs.getString(AppConstants.keyCurrentUserId);
 
   // --- Active Patient ---
   String getActivePatientId() =>
@@ -158,7 +219,8 @@ class StorageService {
       final demoPatients = [
         const Patient(
           id: 'p1',
-          name: 'Rahul Sharma',
+          email: 'rahul@example.com',
+          name: 'Demo Patient',
           age: 48,
           condition: 'Post-Stroke Upper-Limb Recovery',
           overallAccuracy: 91.2,
@@ -172,6 +234,7 @@ class StorageService {
         ),
         const Patient(
           id: 'p2',
+          email: 'priya@example.com',
           name: 'Priya Patel',
           age: 34,
           condition: 'Carpal Tunnel Release Rehab',
@@ -186,6 +249,7 @@ class StorageService {
         ),
         const Patient(
           id: 'p3',
+          email: 'aman@example.com',
           name: 'Aman Verma',
           age: 62,
           condition: 'Parkinsonian Tremor Control',

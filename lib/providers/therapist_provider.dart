@@ -26,7 +26,15 @@ class TherapistProvider extends ChangeNotifier {
   int get totalPatientsCount => _patients.length;
   int get activePatientsCount =>
       _patients.where((p) => p.status != 'Discharged').length;
-  int get sessionsTodayCount => 14;
+  int get sessionsTodayCount {
+    final today = DateTime.now();
+    return _storage.getSessionHistory().where((session) {
+      final created = session.createdAt;
+      return created.year == today.year &&
+          created.month == today.month &&
+          created.day == today.day;
+    }).length;
+  }
   double get averageClinicAccuracy {
     if (_patients.isEmpty) return 84.2;
     final total = _patients.fold<double>(0.0, (acc, p) => acc + p.overallAccuracy);

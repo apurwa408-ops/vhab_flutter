@@ -5,6 +5,8 @@ class AppConstants {
 
   // Storage Keys
   static const String keyUserRole = 'vhab_user_role';
+  static const String keyUsers = 'vhab_users';
+  static const String keyCurrentUserId = 'vhab_current_user_id';
   static const String keyActivePatientId = 'vhab_active_patient_id';
   static const String keyExerciseProgression = 'vhab_exercise_progression';
   static const String keySessionHistory = 'vhab_session_history';

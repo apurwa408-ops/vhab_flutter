@@ -69,7 +69,7 @@ class PatientProfileScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                patient?.name ?? 'Rahul Sharma',
+                                patient?.name ?? 'Your profile',
                                 style: GoogleFonts.outfit(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,

@@ -118,6 +118,32 @@ class ExerciseProvider extends ChangeNotifier {
     // Save session in storage
     await _storage.addSessionRecord(session);
 
+    final patients = _storage.getPatients();
+    final patientIndex = patients.indexWhere((item) => item.id == patientId);
+    if (patientIndex != -1) {
+      final patient = patients[patientIndex];
+      final patientSessions = _storage.getSessionHistory(patientId: patientId);
+      final totalAccuracy = patientSessions.fold<double>(
+        0.0, (sum, item) => sum + item.performance.accuracy);
+      final averageAccuracy = patientSessions.isEmpty
+        ? patient.overallAccuracy
+        : totalAccuracy / patientSessions.length;
+      final updatedPatient = patient.copyWith(
+      overallAccuracy: double.parse(averageAccuracy.toStringAsFixed(1)),
+      totalSessions: patientSessions.length,
+      currentLevel: patient.currentLevel > lvl.levelNumber
+        ? patient.currentLevel
+        : lvl.levelNumber,
+      streakDays: _storage.getStreakDays(),
+      status: averageAccuracy >= 85
+        ? 'Good'
+        : (averageAccuracy >= 70 ? 'Improving' : 'Needs Practice'),
+      totalExerciseMinutes: patient.totalExerciseMinutes +
+        (performance.timeTakenSeconds / 60).ceil(),
+      );
+      await _storage.updatePatient(updatedPatient);
+    }
+
     // 4. Update level status & progression in memory and storage
     final updatedProgression = _storage.getProgressionMap();
     final exerciseMap = updatedProgression[ex.id] ?? {};

@@ -94,27 +94,27 @@ class TherapistDashboardScreen extends StatelessWidget {
                     children: [
                       SizedBox(
                         width: width,
-                        child: const StatBadge(
+                        child: StatBadge(
                           label: 'Total Patients',
-                          value: '28',
+                          value: '${therapistProvider.totalPatientsCount}',
                           icon: Icons.people_alt_rounded,
                           iconColor: AppColors.deepNavy,
                         ),
                       ),
                       SizedBox(
                         width: width,
-                        child: const StatBadge(
+                        child: StatBadge(
                           label: 'Active Patients',
-                          value: '21',
+                          value: '${therapistProvider.activePatientsCount}',
                           icon: Icons.person_search_rounded,
                           iconColor: AppColors.cyan,
                         ),
                       ),
                       SizedBox(
                         width: width,
-                        child: const StatBadge(
+                        child: StatBadge(
                           label: 'Sessions Today',
-                          value: '14',
+                          value: '${therapistProvider.sessionsTodayCount}',
                           icon: Icons.calendar_today_rounded,
                           iconColor: AppColors.purple,
                         ),
@@ -362,6 +362,15 @@ class TherapistDashboardScreen extends StatelessWidget {
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
+                            if (patient.email.isNotEmpty)
+                              Text(
+                                patient.email,
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  color: AppColors.textMuted,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                           ],
                         ),
                       ),

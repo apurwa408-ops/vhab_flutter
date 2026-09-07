@@ -68,6 +68,7 @@ class _GestureMatchGameState extends State<GestureMatchGame> {
   bool _isGameOver = false;
   bool _showSuccessFlash = false;
   bool _isTransitioning = false;
+  bool _gameHasStarted = false;
 
   final Random _random = Random();
   String _liveGesture = 'open_hand';
@@ -84,6 +85,7 @@ class _GestureMatchGameState extends State<GestureMatchGame> {
 
   void _onCameraFrame() {
     if (!mounted || _isGameOver || _isTransitioning) return;
+    if (_inputService.isHandDetected) _gameHasStarted = true;
 
     final detectedGesture = _inputService.activeGesture;
     if (_liveGesture != detectedGesture) {
@@ -114,7 +116,7 @@ class _GestureMatchGameState extends State<GestureMatchGame> {
 
   void _startGameTimer() {
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) return;
+      if (!mounted || !_gameHasStarted) return;
       setState(() => _elapsedSeconds++);
     });
   }
