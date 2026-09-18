@@ -309,7 +309,7 @@ class PatientHomeScreen extends StatelessWidget {
               const SizedBox(height: 14),
 
               // Exercise Cards List
-              ...exercises.take(4).map((exercise) {
+              ...exercises.take(5).map((exercise) {
                 return _buildHomeExerciseCard(
                     context, exercise, exerciseProvider);
               }),
