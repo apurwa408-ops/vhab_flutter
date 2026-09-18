@@ -17,8 +17,9 @@ class PatientProgressScreen extends StatelessWidget {
     final patientProvider = context.watch<PatientProvider>();
     final exerciseProvider = context.watch<ExerciseProvider>();
 
-    final overallAcc = exerciseProvider.getOverallAccuracy();
+    final overallAcc = patientProvider.averageAccuracy;
     final totalSessions = patientProvider.completedSessionsCount;
+
     final totalLevels = exerciseProvider.getTotalCompletedLevels();
     final streak = patientProvider.streakDays;
 

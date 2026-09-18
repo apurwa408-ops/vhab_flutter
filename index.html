@@ -39,6 +39,18 @@
   <script src="hand_tracker.js"></script>
   <script src="audio_sfx.js"></script>
 
+  <!-- Supabase Web Environment Bridge -->
+  <script>
+    window.__ENV__ = window.__ENV__ || {};
+    try {
+      const storedUrl = localStorage.getItem('VITE_SUPABASE_URL') || localStorage.getItem('flutter.vhab_supabase_url');
+      const storedKey = localStorage.getItem('VITE_SUPABASE_PUBLISHABLE_KEY') || localStorage.getItem('flutter.vhab_supabase_key');
+      if (storedUrl) window.__ENV__.VITE_SUPABASE_URL = storedUrl;
+      if (storedKey) window.__ENV__.VITE_SUPABASE_PUBLISHABLE_KEY = storedKey;
+    } catch (_) {}
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
+
 </body>
 </html>
