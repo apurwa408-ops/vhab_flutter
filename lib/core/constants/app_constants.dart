@@ -14,6 +14,9 @@ class AppConstants {
   static const String keyPatientRoster = 'vhab_patient_roster';
   static const String keyDailyStreak = 'vhab_daily_streak';
   static const String keyLastSessionDate = 'vhab_last_session_date';
+  static const String keyOfflineSessionQueue = 'vhab_offline_session_queue';
+  static const String keySupabaseUrl = 'vhab_supabase_url';
+  static const String keySupabaseKey = 'vhab_supabase_key';
 
   // Progression Thresholds
   static const double unlockAccuracyMin = 80.0;

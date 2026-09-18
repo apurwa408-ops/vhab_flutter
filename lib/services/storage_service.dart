@@ -416,4 +416,39 @@ class StorageService {
       ),
     ];
   }
+
+  // --- Offline Session Queue ---
+  List<Map<String, dynamic>> getOfflineSessionQueue() {
+    final raw = _prefs.getString(AppConstants.keyOfflineSessionQueue);
+    if (raw == null) return [];
+    try {
+      final list = jsonDecode(raw) as List<dynamic>;
+      return list.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveOfflineSessionQueue(List<Map<String, dynamic>> queue) async {
+    await _prefs.setString(
+      AppConstants.keyOfflineSessionQueue,
+      jsonEncode(queue),
+    );
+  }
+
+  Future<void> enqueueOfflineSession(Map<String, dynamic> sessionData) async {
+    final queue = getOfflineSessionQueue();
+    queue.add(sessionData);
+    await saveOfflineSessionQueue(queue);
+  }
+
+  // --- Optional Stored Supabase Credentials ---
+  String? getCustomSupabaseUrl() => _prefs.getString(AppConstants.keySupabaseUrl);
+  String? getCustomSupabaseKey() => _prefs.getString(AppConstants.keySupabaseKey);
+
+  Future<void> setCustomSupabaseCredentials(String url, String key) async {
+    await _prefs.setString(AppConstants.keySupabaseUrl, url);
+    await _prefs.setString(AppConstants.keySupabaseKey, key);
+  }
 }
+

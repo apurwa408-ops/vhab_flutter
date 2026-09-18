@@ -50,6 +50,122 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     setState(() => _isRegistering = registering);
   }
 
+  Future<void> _showForgotPasswordDialog() async {
+    final emailCtrl = TextEditingController(text: _emailController.text.trim());
+    String? dialogError;
+    bool sent = false;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: !sent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setStateDialog) {
+          final auth = ctx.read<AuthProvider>();
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            backgroundColor: Colors.white,
+            title: Text(
+              sent ? 'Check your inbox' : 'Reset password',
+              style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w600, color: const Color(0xFF152420)),
+            ),
+            content: sent
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.mark_email_read_rounded, color: Color(0xFF1D7A65), size: 44),
+                      const SizedBox(height: 14),
+                      Text(
+                        'A password reset link has been sent to ${emailCtrl.text.trim()}. Check your email and follow the link.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF6C7A73), height: 1.55),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Enter your account email and we\'ll send you a reset link.',
+                        style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF6C7A73), height: 1.5),
+                      ),
+                      const SizedBox(height: 18),
+                      TextFormField(
+                        controller: emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        autofocus: true,
+                        style: GoogleFonts.inter(fontSize: 13),
+                        decoration: InputDecoration(
+                          labelText: 'Email address',
+                          labelStyle: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF6C7A73)),
+                          prefixIcon: const Icon(Icons.mail_outline_rounded, size: 17, color: Color(0xFF6C7A73)),
+                          filled: true,
+                          fillColor: const Color(0xFFFBFCFB),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(11), borderSide: const BorderSide(color: Color(0x14152420))),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(11), borderSide: const BorderSide(color: Color(0x14152420))),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(11), borderSide: const BorderSide(color: Color(0xFF1D7A65))),
+                        ),
+                      ),
+                      if (dialogError != null) ...[
+                        const SizedBox(height: 10),
+                        Text(dialogError!, style: const TextStyle(color: Color(0xFFD32F2F), fontSize: 12)),
+                      ],
+                    ],
+                  ),
+            actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            actions: sent
+                ? [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1D7A65),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+                        ),
+                        child: Text('Done', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ]
+                : [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: Text('Cancel', style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF6C7A73))),
+                    ),
+                    ElevatedButton(
+                      onPressed: auth.isBusy
+                          ? null
+                          : () async {
+                              setStateDialog(() => dialogError = null);
+                              final error = await auth.resetPassword(emailCtrl.text.trim());
+                              if (!ctx.mounted) return;
+                              if (error != null) {
+                                setStateDialog(() => dialogError = error);
+                              } else {
+                                setStateDialog(() => sent = true);
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1D7A65),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+                      ),
+                      child: auth.isBusy
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : Text('Send link', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+          );
+        },
+      ),
+    );
+
+    emailCtrl.dispose();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
@@ -227,7 +343,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 _field(_passwordController, 'Password', Icons.lock_outline_rounded, (v) => v == null || v.length < 6 ? 'Use at least 6 characters' : null, obscureText: _obscurePassword, suffix: IconButton(onPressed: () => setState(() => _obscurePassword = !_obscurePassword), icon: Icon(_obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded))),
                 if (!_isRegistering) ...[
                   const SizedBox(height: 12),
-                  Row(children: [const Icon(Icons.check_box_outline_blank_rounded, size: 16, color: Color(0xFF6C7A73)), const SizedBox(width: 7), Text('Remember me', style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF6C7A73))), const Spacer(), Text('Forgot password?', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF1D7A65)))]),
+                  Row(children: [const Icon(Icons.check_box_outline_blank_rounded, size: 16, color: Color(0xFF6C7A73)), const SizedBox(width: 7), Text('Remember me', style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF6C7A73))), const Spacer(), GestureDetector(onTap: _showForgotPasswordDialog, child: Text('Forgot password?', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF1D7A65))))]),
                 ],
                 if (auth.errorMessage != null) ...[
                   const SizedBox(height: 12),

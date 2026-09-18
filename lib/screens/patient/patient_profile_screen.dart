@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/patient_provider.dart';
+import '../../services/supabase_service.dart';
 import '../../widgets/common/custom_card.dart';
 
 class PatientProfileScreen extends StatelessWidget {
@@ -14,6 +15,8 @@ class PatientProfileScreen extends StatelessWidget {
     final patientProvider = context.watch<PatientProvider>();
     final authProvider = context.watch<AuthProvider>();
     final patient = patientProvider.currentPatient;
+    final supa = SupabaseService.instance;
+    final isSupaConnected = supa.isConfigured && supa.currentUser != null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -85,22 +88,66 @@ class PatientProfileScreen extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.success.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  'STATUS: ${patient?.status.toUpperCase() ?? 'GOOD'}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.success,
-                                    letterSpacing: 0.5,
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 6,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.success.withOpacity(0.12),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      'STATUS: ${patient?.status.toUpperCase() ?? 'GOOD'}',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.success,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: isSupaConnected
+                                          ? AppColors.cyan.withOpacity(0.12)
+                                          : AppColors.textSecondary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          isSupaConnected
+                                              ? Icons.cloud_done_rounded
+                                              : Icons.cloud_off_rounded,
+                                          size: 13,
+                                          color: isSupaConnected
+                                              ? AppColors.cyan
+                                              : AppColors.textSecondary,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          isSupaConnected
+                                              ? 'SUPABASE: SYNCED'
+                                              : 'LOCAL STORAGE',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: isSupaConnected
+                                                ? AppColors.cyan
+                                                : AppColors.textSecondary,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -108,6 +155,7 @@ class PatientProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+
 
                   const SizedBox(height: 20),
 

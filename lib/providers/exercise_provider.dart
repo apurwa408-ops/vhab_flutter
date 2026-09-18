@@ -6,6 +6,8 @@ import '../services/adaptive_difficulty_service.dart';
 import '../services/exercise_service.dart';
 import '../services/feedback_service.dart';
 import '../services/storage_service.dart';
+import '../services/supabase_service.dart';
+
 
 class ExerciseProvider extends ChangeNotifier {
   final StorageService _storage;
@@ -178,8 +180,54 @@ class ExerciseProvider extends ChangeNotifier {
     // Reload exercises to update UI state
     _loadExercises();
 
+    // 5. Asynchronously persist session and update progress in Supabase
+    final supa = SupabaseService.instance;
+    final userId = supa.currentUserId ?? patientId;
+    final isCompleted = performance.completionPercentage >= 70;
+    final score = (performance.accuracy * 10).round();
+
+    final sessionPayload = {
+      'user_id': userId,
+      'exercise_name': ex.title,
+      'exercise_type': ex.id,
+      'score': score,
+      'accuracy': performance.accuracy,
+      'duration_seconds': performance.timeTakenSeconds,
+      'completed': isCompleted,
+    };
+
+    if (supa.isConfigured && supa.currentUserId != null) {
+      supa.saveExerciseSession(
+        userId: userId,
+        exerciseName: ex.title,
+        exerciseType: ex.id,
+        score: score,
+        accuracy: performance.accuracy,
+        durationSeconds: performance.timeTakenSeconds,
+        completed: isCompleted,
+      ).then((success) {
+        if (!success) {
+          _storage.enqueueOfflineSession(sessionPayload);
+        } else {
+          supa.upsertExerciseProgress(
+            userId: userId,
+            exerciseName: ex.title,
+            score: score,
+            accuracy: performance.accuracy,
+            completed: isCompleted,
+          );
+        }
+      }).catchError((_) {
+        _storage.enqueueOfflineSession(sessionPayload);
+      });
+    } else {
+      // Offline mode: queue locally
+      _storage.enqueueOfflineSession(sessionPayload);
+    }
+
     // Re-bind active exercise and level with updated states
     _activeExercise = _exercises.firstWhere((e) => e.id == ex.id);
+
     _activeLevel = _activeExercise!.levels.firstWhere(
       (l) => l.levelNumber == lvl.levelNumber,
     );

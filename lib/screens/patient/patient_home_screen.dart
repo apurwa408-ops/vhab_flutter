@@ -27,8 +27,9 @@ class PatientHomeScreen extends StatelessWidget {
     final patient = patientProvider.currentPatient;
     final exercises = exerciseProvider.exercises;
     final completedLevels = exerciseProvider.getTotalCompletedLevels();
-    final avgAccuracy = exerciseProvider.getOverallAccuracy();
+    final avgAccuracy = patientProvider.averageAccuracy;
     final streak = patientProvider.streakDays;
+
 
     return Scaffold(
       backgroundColor: AppColors.background,
