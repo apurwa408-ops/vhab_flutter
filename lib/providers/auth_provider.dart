@@ -341,7 +341,7 @@ class AuthProvider extends ChangeNotifier {
 
   /// Request a password-reset email via Supabase.
   /// [redirectTo] is the deployed app URL Supabase sends users back to.
-  Future<String?> resetPassword(String email, {String redirectTo = 'https://vhabflutter.vercel.app/'}) async {
+  Future<String?> resetPassword(String email, {String? redirectTo}) async {
     if (email.trim().isEmpty || !email.contains('@')) {
       return 'Please enter a valid email address.';
     }
@@ -349,11 +349,13 @@ class AuthProvider extends ChangeNotifier {
     if (!supa.isConfigured) {
       return 'Cloud account required for password reset. If you use a local account, please contact your administrator.';
     }
+    // Use current page URL if redirect not provided
+    final effectiveRedirect = redirectTo ?? Uri.base.toString();
     _setBusy(true);
     try {
       await supa.sendPasswordResetEmail(
         email: email.trim(),
-        redirectTo: redirectTo,
+        redirectTo: effectiveRedirect,
       );
       _setBusy(false);
       return null; // null = success
