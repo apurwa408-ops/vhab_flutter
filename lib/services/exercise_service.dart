@@ -303,7 +303,7 @@ class ExerciseService {
       ),
       ExerciseModel(
         id: AppConstants.exerciseGesture,
-        title: 'GESTURE MATCH',
+        title: 'Hand Gesture Challenge',
         subtitle: 'Hand Pose Recognition',
         description: 'Improve hand pose recognition and finger control by executing prompted rehabilitation gestures.',
         icon: Icons.pan_tool_alt_rounded,
